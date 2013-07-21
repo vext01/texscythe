@@ -12,7 +12,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy.orm import sessionmaker, relationship, backref
 
 # ---/// ORM Mappings ///----------------------------------------------
 
@@ -28,14 +29,19 @@ class Package(object):
 class Dependency(object):
     __tablename__ = "dependencies"
     id = Column(Integer, primary_key=True)
-    package_id = Column(Integer)
+    package_id = Column(Integer, ForeignKey("packages.id"))
+
+    package = relationship("Package", backref=backref("dependencies"))
 
 class File(object):
     __tablename__ = "files"
     id = Column(Integer, primary_key=True)
-    package_id = Column(Integer)
+    package_id = Column(Integer, ForeignKey("packages.id"))
     filename = Column(String)
     filetype = Column(String) # [r]unfile/[s]rcfile/[d]ocfile
 
+    package = relationship("Package", backref=backref("files"))
+
 if __name__ == "__main__":
     engine = create_engine('sqlite:///tmp/texscythe.db', echo=True)
+    sess = sessionmaker()
