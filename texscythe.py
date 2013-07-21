@@ -44,21 +44,103 @@ class File(object):
 
 # ---/// Parsing Gunk ///----------------------------------------------
 
+class TeXParseError(Exception): pass
+
 class ParserState(object):
+    """ Represents where abouts it the tlpdb we are """
+
+    # for the want of a better word, we call these "filelevels"
     TOPLEVEL = 0
     RUNFILES = 1
     DOCFILES = 2
     SRCFILES = 3
 
+    def __init__(self, pkg, filelevel):
+        self.pkg = pkg
+        self.filelevel = filelevel
+
 def parse(sess, filename):
     with open(filename, "r") as fh: parse_lines(sess, fh)
 
 def parse_lines(sess, fh):
-    state = ParserState.TOPLEVEL
+    state = ParserState(None, ParserState.TOPLEVEL)
     for line in fh:
         state = parse_line(sess, line, state)
 
-def parse_line(sess, line):
+def parse_line(sess, line, state):
+    if line.startswith(" "):
+        return parse_file_line(sess, line, state)
+    elif line.strip() == "":
+        return parse_end_package(sess, line, state)
+
+    # If we get here, then the first word of the line is package metadata
+    firstword = line.split(" ")[0]
+    funcname = ("parse_%s_line" % (firstword)).replace("-", "_")
+
+    try:
+        func = globals()[funcname]
+    except KeyError:
+        raise TeXParseError(
+                "Unknown package metadata '%s'. Missing handler %s()" % \
+                (firstword, funcname))
+
+    func(sess, line, state)
+
+def parse_file_line(sess, line, state):
+    pass
+
+def parse_end_package(sess, line, state):
+    pass
+
+def parse_name_line(sess, line, state):
+    pass
+
+def parse_shortdesc_line(sess, line, state):
+    pass
+
+def parse_longdesc_line(sess, line, state):
+    pass
+
+def parse_revision_line(sess, line, state):
+    pass
+
+def parse_category_line(sess, line, state):
+    pass
+
+def parse_depend_line(sess, line, state):
+    pass
+
+def parse_runfiles_line(sess, line, state):
+    pass
+
+def parse_docfiles_line(sess, line, state):
+    pass
+
+def parse_srcfiles_line(sess, line, state):
+    pass
+
+def parse_binfiles_line(sess, line, state):
+    pass
+
+def parse_catalogue_line(sess, line, state):
+    pass
+
+def parse_catalogue_ctan_line(sess, line, state):
+    pass
+
+def parse_catalogue_date_line(sess, line, state):
+    pass
+
+def parse_catalogue_license_line(sess, line, state):
+    pass
+
+def parse_catalogue_version_line(sess, line, state):
+    pass
+
+def parse_execute_line(sess, line, state):
+    pass
+
+def parse_postaction_line(sess, line, state):
     pass
 
 if __name__ == "__main__":
