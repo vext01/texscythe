@@ -44,11 +44,19 @@ class File(object):
 
 # ---/// Parsing Gunk ///----------------------------------------------
 
+class ParserState(object):
+    TOPLEVEL = 0
+    RUNFILES = 1
+    DOCFILES = 2
+    SRCFILES = 3
+
 def parse(sess, filename):
     with open(filename, "r") as fh: parse_lines(sess, fh)
 
 def parse_lines(sess, fh):
-    for l in fh: parse_line(sess, l)
+    state = ParserState.TOPLEVEL
+    for line in fh:
+        state = parse_line(sess, line, state)
 
 def parse_line(sess, line):
     pass
