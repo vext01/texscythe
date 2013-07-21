@@ -42,6 +42,18 @@ class File(object):
 
     package = relationship("Package", backref=backref("files"))
 
+# ---/// Parsing Gunk ///----------------------------------------------
+
+def parse(sess, filename):
+    with open(filename, "r") as fh: parse_lines(sess, fh)
+
+def parse_lines(sess, fh):
+    for l in fh: parse_line(sess, l)
+
+def parse_line(sess, line):
+    pass
+
 if __name__ == "__main__":
     engine = create_engine('sqlite:///tmp/texscythe.db', echo=True)
-    sess = sessionmaker()
+    sess = sessionmaker(bind=engine)
+    parse(sess, "texlive.tlpdb")
