@@ -38,7 +38,7 @@ class File(object):
     id = Column(Integer, primary_key=True)
     package_id = Column(Integer, ForeignKey("packages.id"))
     filename = Column(String)
-    filetype = Column(String) # [r]unfile/[s]rcfile/[d]ocfile
+    filetype = Column(String) # [r]unfile/[s]rcfile/[d]ocfile/[b]infile
 
     package = relationship("Package", backref=backref("files"))
 
