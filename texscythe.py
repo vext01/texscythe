@@ -12,12 +12,17 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import sys
+
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship, backref
+from sqlalchemy.ext.declarative import declarative_base
 
 # ---/// ORM Mappings ///----------------------------------------------
 
-class Package(object):
+Base = declarative_base()
+
+class Package(Base):
     __tablename__ = "packages"
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -26,14 +31,17 @@ class Package(object):
     shortdesc = Column(String)
     longdesc = Column(String)
 
-class Dependency(object):
+    @staticmethod
+    def skel(name): return Package(name=name) # fill in the rest as we find it
+
+class Dependency(Base):
     __tablename__ = "dependencies"
     id = Column(Integer, primary_key=True)
     package_id = Column(Integer, ForeignKey("packages.id"))
 
     package = relationship("Package", backref=backref("dependencies"))
 
-class File(object):
+class File(Base):
     __tablename__ = "files"
     id = Column(Integer, primary_key=True)
     package_id = Column(Integer, ForeignKey("packages.id"))
@@ -84,66 +92,75 @@ def parse_line(sess, line, state):
                 "Unknown package metadata '%s'. Missing handler %s()" % \
                 (firstword, funcname))
 
-    func(sess, line, state)
+    return func(sess, line, state)
 
 def parse_file_line(sess, line, state):
-    pass
+    return state
 
 def parse_end_package(sess, line, state):
-    pass
+    assert(state.pkg is not None)
+    sess.add(state.pkg)
+    return ParserState(None, ParserState.TOPLEVEL)
 
 def parse_name_line(sess, line, state):
-    pass
+    """ This is executed when we hit the beginning of a new package """
+    assert(state.pkg is None and state.filelevel == ParserState.TOPLEVEL)
+
+    name = line.split()[1]
+    return ParserState(Package.skel(name), ParserState.TOPLEVEL)
 
 def parse_shortdesc_line(sess, line, state):
-    pass
+    return state
 
 def parse_longdesc_line(sess, line, state):
-    pass
+    return state
 
 def parse_revision_line(sess, line, state):
-    pass
+    return state
 
 def parse_category_line(sess, line, state):
-    pass
+    return state
 
 def parse_depend_line(sess, line, state):
-    pass
+    return state
 
 def parse_runfiles_line(sess, line, state):
-    pass
+    return state
 
 def parse_docfiles_line(sess, line, state):
-    pass
+    return state
 
 def parse_srcfiles_line(sess, line, state):
-    pass
+    return state
 
 def parse_binfiles_line(sess, line, state):
-    pass
+    return state
 
 def parse_catalogue_line(sess, line, state):
-    pass
+    return state
 
 def parse_catalogue_ctan_line(sess, line, state):
-    pass
+    return state
 
 def parse_catalogue_date_line(sess, line, state):
-    pass
+    return state
 
 def parse_catalogue_license_line(sess, line, state):
-    pass
+    return state
 
 def parse_catalogue_version_line(sess, line, state):
-    pass
+    return state
 
 def parse_execute_line(sess, line, state):
-    pass
+    return state
 
 def parse_postaction_line(sess, line, state):
-    pass
+    return state
 
 if __name__ == "__main__":
-    engine = create_engine('sqlite:///tmp/texscythe.db', echo=True)
-    sess = sessionmaker(bind=engine)
+    engine = create_engine('sqlite:///texscythe.db')
+    Session = sessionmaker(bind=engine)
+    sess = Session()
+    Base.metadata.create_all(engine) 
     parse(sess, "texlive.tlpdb")
+    sess.commit()
