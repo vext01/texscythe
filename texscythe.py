@@ -12,7 +12,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import sys
+import sys, os, os.path
 
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship, backref
@@ -28,7 +28,7 @@ class Package(Base):
     __tablename__ = "packages"
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    category = Column(String)
+    # XXX category = Column(String)
     revision = Column(Integer)
     shortdesc = Column(String)
     longdesc = Column(String)
@@ -69,18 +69,23 @@ class ParserState(object):
         self.pkg = pkg
         self.filelevel = filelevel
 
+def strip_first_word(s):
+    space = s.index(" ")
+    return s[space + 1:]
+
 def parse(sess, filename):
+    print("Parsing tlpdb...")
     with open(filename, "r") as fh: parse_lines(sess, fh)
 
 def parse_lines(sess, fh):
     state = ParserState(None, ParserState.TOPLEVEL)
     for line in fh:
-        state = parse_line(sess, line, state)
+        state = parse_line(sess, line.rstrip(), state)
 
 def parse_line(sess, line, state):
     if line.startswith(" "):
         return parse_file_line(sess, line, state)
-    elif line.strip() == "":
+    elif line == "":
         return parse_end_package(sess, line, state)
 
     # If we get here, then the first word of the line is package metadata
@@ -112,12 +117,23 @@ def parse_name_line(sess, line, state):
     return ParserState(Package.skel(name), ParserState.TOPLEVEL)
 
 def parse_shortdesc_line(sess, line, state):
+    assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
+    state.pkg.shortdesc = strip_first_word(line)
     return state
 
 def parse_longdesc_line(sess, line, state):
+    assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
+
+    start = line.index(" ")
+
+    if state.pkg.longdesc is None: # first longdesc line
+        state.pkg.longdesc = ""
+
+    state.pkg.longdesc += strip_first_word(line)
     return state
 
 def parse_revision_line(sess, line, state):
+    state.pkg.revision = int(line.split()[1])
     return state
 
 def parse_category_line(sess, line, state):
@@ -160,9 +176,17 @@ def parse_postaction_line(sess, line, state):
     return state
 
 if __name__ == "__main__":
-    engine = create_engine('sqlite:///texscythe.db')
+    DBPATH = "texscythe.db"
+
+    # Since we will only ever use sqlite, we can do this
+    if os.path.exists(DBPATH): os.unlink(DBPATH)
+
+    # Set up ORM
+    engine = create_engine('sqlite:///%s' % (DBPATH))
     Session = sessionmaker(bind=engine)
     sess = Session()
     Base.metadata.create_all(engine) 
+
+    # Populate db
     parse(sess, "texlive.tlpdb")
     sess.commit()
