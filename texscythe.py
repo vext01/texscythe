@@ -69,9 +69,9 @@ class ParserState(object):
         self.pkg = pkg
         self.filelevel = filelevel
 
-def strip_first_word(s):
+def fieldname_and_data(s):
     space = s.index(" ")
-    return s[space + 1:]
+    return (s[0:space], s[space + 1:])
 
 def parse(sess, filename):
     print("Parsing tlpdb...")
@@ -89,90 +89,87 @@ def parse_line(sess, line, state):
         return parse_end_package(sess, line, state)
 
     # If we get here, then the first word of the line is package metadata
-    firstword = line.split(" ")[0]
-    funcname = ("parse_%s_line" % (firstword)).replace("-", "_")
+    (field, data) = fieldname_and_data(line)
+    funcname = ("parse_%s_data" % (field)).replace("-", "_")
 
     try:
         func = globals()[funcname]
     except KeyError:
         raise TeXParseError(
                 "Unknown package metadata '%s'. Missing handler %s()" % \
-                (firstword, funcname))
+                (field, funcname))
 
-    return func(sess, line, state)
+    return func(sess, data, state)
 
 def parse_file_line(sess, line, state):
     return state
 
-def parse_end_package(sess, line, state):
+def parse_end_package(sess, data, state):
+    """ Called when we hit the blank line inbetween packages """
     assert(state.pkg is not None)
     sess.add(state.pkg)
     return ParserState(None, ParserState.TOPLEVEL)
 
-def parse_name_line(sess, line, state):
+def parse_name_data(sess, data, state):
     """ This is executed when we hit the beginning of a new package """
     assert(state.pkg is None and state.filelevel == ParserState.TOPLEVEL)
+    return ParserState(Package.skel(data), ParserState.TOPLEVEL)
 
-    name = line.split()[1]
-    return ParserState(Package.skel(name), ParserState.TOPLEVEL)
-
-def parse_shortdesc_line(sess, line, state):
+def parse_shortdesc_data(sess, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
-    state.pkg.shortdesc = strip_first_word(line)
+    state.pkg.shortdesc = data
     return state
 
-def parse_longdesc_line(sess, line, state):
+def parse_longdesc_data(sess, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
-
-    start = line.index(" ")
 
     if state.pkg.longdesc is None: # first longdesc line
         state.pkg.longdesc = ""
 
-    state.pkg.longdesc += strip_first_word(line)
+    state.pkg.longdesc += data
     return state
 
-def parse_revision_line(sess, line, state):
-    state.pkg.revision = int(line.split()[1])
+def parse_revision_data(sess, data, state):
+    state.pkg.revision = int(data)
     return state
 
-def parse_category_line(sess, line, state):
+def parse_category_data(sess, data, state):
     return state
 
-def parse_depend_line(sess, line, state):
+def parse_depend_data(sess, data, state):
     return state
 
-def parse_runfiles_line(sess, line, state):
+def parse_runfiles_data(sess, data, state):
     return state
 
-def parse_docfiles_line(sess, line, state):
+def parse_docfiles_data(sess, data, state):
     return state
 
-def parse_srcfiles_line(sess, line, state):
+def parse_srcfiles_data(sess, data, state):
     return state
 
-def parse_binfiles_line(sess, line, state):
+def parse_binfiles_data(sess, data, state):
     return state
 
-def parse_catalogue_line(sess, line, state):
+def parse_catalogue_data(sess, data, state):
     return state
 
-def parse_catalogue_ctan_line(sess, line, state):
+def parse_catalogue_ctan_data(sess, data, state):
     return state
 
-def parse_catalogue_date_line(sess, line, state):
+def parse_catalogue_date_data(sess, data, state):
     return state
 
-def parse_catalogue_license_line(sess, line, state):
+def parse_catalogue_license_data(sess, data, state):
     return state
 
-def parse_catalogue_version_line(sess, line, state):
+def parse_catalogue_version_data(sess, data, state):
     return state
 
-def parse_execute_line(sess, line, state):
+def parse_execute_data(sess, data, state):
     return state
 
-def parse_postaction_line(sess, line, state):
+def parse_postaction_data(sess, data, state):
     return state
 
 if __name__ == "__main__":
