@@ -20,6 +20,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 # ---/// ORM Mappings ///----------------------------------------------
 
+# XXX Categories
+
 Base = declarative_base()
 
 class Package(Base):
