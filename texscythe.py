@@ -40,10 +40,14 @@ class Package(Base):
 
 class Dependency(Base):
     __tablename__ = "dependencies"
-    pkgname = Column(String, primary_key=True)
-    depends = Column(String, ForeignKey("packages.pkgname"))
+    id = Column(Integer, primary_key=True)
+    pkgname = Column(String)
+    needs = Column(String, ForeignKey("packages.pkgname"))
 
     package = relationship("Package", backref=backref("dependencies"))
+
+    def __str__(self):
+        return "Dependency: %s needs %s" % (self.pkgname, self.needs)
 
 class File(Base):
     __tablename__ = "files"
@@ -143,6 +147,8 @@ def parse_category_data(sess, data, state):
 
 def parse_depend_data(sess, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
+    dep = Dependency(pkgname=state.pkg.pkgname, needs=data)
+    sess.add(dep)
     return state
 
 # Note that we assume that files information comes last in a package
