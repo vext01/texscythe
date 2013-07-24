@@ -200,6 +200,14 @@ def parse_execute_data(sess, data, state):
 def parse_postaction_data(sess, data, state):
     return state
 
+def print_db_summary(sess):
+    print(25 * "=")
+    print("Database summary")
+    print(25 * "=")
+    print("Packages:     %8d" % sess.query(Package).count())
+    print("Files:        %8d" % sess.query(File).count())
+    print("Dependencies: %8d" % sess.query(Dependency).count())
+
 if __name__ == "__main__":
     DBPATH = "texscythe.db"
 
@@ -214,3 +222,6 @@ if __name__ == "__main__":
 
     # Populate db
     parse(sess, "texlive.tlpdb")
+    print_db_summary(sess)
+    sess.close()
+
