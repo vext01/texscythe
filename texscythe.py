@@ -125,6 +125,7 @@ def parse_end_package(sess, data, state):
     """ Called when we hit the blank line inbetween packages """
     assert(state.pkg is not None)
     sess.add(state.pkg)
+    sess.commit()
     return ParserState(None, ParserState.TOPLEVEL)
 
 def parse_name_data(sess, data, state):
@@ -213,4 +214,3 @@ if __name__ == "__main__":
 
     # Populate db
     parse(sess, "texlive.tlpdb")
-    sess.commit()
