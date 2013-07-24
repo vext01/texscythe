@@ -91,7 +91,7 @@ def parse_lines(sess, fh):
 
 def parse_line(sess, line, state):
     if line.startswith(" "):
-        return parse_file_line(sess, line, state)
+        return parse_file_line(sess, line[1:], state)
     elif line == "":
         return parse_end_package(sess, line, state)
 
@@ -108,7 +108,17 @@ def parse_line(sess, line, state):
 
     return func(sess, data, state)
 
+filelevel_map = { \
+    ParserState.DOCFILES : "d",
+    ParserState.SRCFILES : "s",
+    ParserState.BINFILES : "b",
+    ParserState.RUNFILES : "r",
+    }
 def parse_file_line(sess, line, state):
+    """ We get here when we see a file that is part of a package """
+    assert state.pkg is not None and state.filelevel != ParserState.TOPLEVEL
+    fl = File(pkgname=state.pkg.pkgname, filename=line, filetype=filelevel_map[state.filelevel])
+    sess.add(fl)
     return state
 
 def parse_end_package(sess, data, state):
