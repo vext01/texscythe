@@ -21,32 +21,34 @@ from sqlalchemy.ext.declarative import declarative_base
 # ---/// ORM Mappings ///----------------------------------------------
 
 # XXX Categories
+# XXX catalogue-*
 
 Base = declarative_base()
 
 class Package(Base):
     __tablename__ = "packages"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    # XXX category = Column(String)
+    # It may not be good relational database design to use a name as a primary
+    # key, but it does mean that we only need a single pass over the tlpdb.
+    # This is because we immediately know the primary key of dependencies.
+    pkgname = Column(String, primary_key=True)
     revision = Column(Integer)
     shortdesc = Column(String)
     longdesc = Column(String)
 
     @staticmethod
-    def skel(name): return Package(name=name) # fill in the rest as we find it
+    def skel(pkgname): return Package(pkgname=pkgname) # fill in the rest as we find it
 
 class Dependency(Base):
     __tablename__ = "dependencies"
-    id = Column(Integer, primary_key=True)
-    package_id = Column(Integer, ForeignKey("packages.id"))
+    pkgname = Column(String, primary_key=True)
+    depends = Column(String, ForeignKey("packages.pkgname"))
 
     package = relationship("Package", backref=backref("dependencies"))
 
 class File(Base):
     __tablename__ = "files"
     id = Column(Integer, primary_key=True)
-    package_id = Column(Integer, ForeignKey("packages.id"))
+    pkgname = Column(String, ForeignKey("packages.pkgname"))
     filename = Column(String)
     filetype = Column(String) # [r]unfile/[s]rcfile/[d]ocfile/[b]infile
 
@@ -64,6 +66,7 @@ class ParserState(object):
     RUNFILES = 1
     DOCFILES = 2
     SRCFILES = 3
+    BINFILES = 4
 
     def __init__(self, pkg, filelevel):
         self.pkg = pkg
@@ -130,26 +133,34 @@ def parse_longdesc_data(sess, data, state):
     return state
 
 def parse_revision_data(sess, data, state):
+    assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     state.pkg.revision = int(data)
     return state
 
 def parse_category_data(sess, data, state):
+    assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     return state
 
 def parse_depend_data(sess, data, state):
+    assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     return state
 
+# Note that we assume that files information comes last in a package
 def parse_runfiles_data(sess, data, state):
-    return state
+    assert(state.pkg is not None)
+    return ParserState(state.pkg, ParserState.RUNFILES)
 
 def parse_docfiles_data(sess, data, state):
-    return state
+    assert(state.pkg is not None)
+    return ParserState(state.pkg, ParserState.DOCFILES)
 
 def parse_srcfiles_data(sess, data, state):
-    return state
+    assert(state.pkg is not None)
+    return ParserState(state.pkg, ParserState.SRCFILES)
 
 def parse_binfiles_data(sess, data, state):
-    return state
+    assert(state.pkg is not None)
+    return ParserState(state.pkg, ParserState.BINFILES)
 
 def parse_catalogue_data(sess, data, state):
     return state
