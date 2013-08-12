@@ -19,10 +19,14 @@ VERSION=0.1
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-i", "--initdb", action='store_true',
+    parser.add_argument("--initdb", action='store_true',
             help="initialise the database")
-    parser.add_argument("-s", "--subset", nargs='*',
-            help="compute a texmf subset")
+    parser.add_argument("-s", "--subset", action='store_true',
+            help="compute a subset")
+    parser.add_argument("-i", "--include", nargs='*',
+            help="include package in subset")
+    parser.add_argument("-x", "--exclude", nargs='*',
+            help="exclude package in subset")
     parser.add_argument("--version", action='store_true',
             help="show version")
 
@@ -33,7 +37,7 @@ if __name__ == "__main__":
     chosen_tasks = [ x for x in primary_tasks if x ]
 
     if len(chosen_tasks) != 1:
-        parser.error("please select a single primary task")
+        parser.error("please select a single primary task.\n  one of: --initdb, --subset, --version")
 
     if args.subset:
         # XXX
