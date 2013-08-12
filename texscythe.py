@@ -40,8 +40,8 @@ if __name__ == "__main__":
         parser.error("please select a single primary task.\n  one of: --initdb, --subset, --version")
 
     if args.subset:
-        # XXX
-        parser.error("Not implemented")
+        import subset
+        subset.compute_subset(args.include, args.exclude)
     elif args.initdb:
         import tlpdbparser
         tlpdbparser.initdb()
