@@ -68,6 +68,7 @@ class ParserState(object):
     """ Represents where abouts it the tlpdb we are """
 
     # for the want of a better word, we call these "filelevels"
+    # (XXX: Use enum when moving to Python 3)
     TOPLEVEL = 0
     RUNFILES = 1
     DOCFILES = 2
@@ -81,9 +82,7 @@ class ParserState(object):
     def __init__(self, pkg, filelevel):
         self.pkg = pkg
         self.filelevel = filelevel
-        #self.num_pkgs_parsed = 0
-
-    # XXX def change():
+        self.num_pkgs_parsed = 0
 
 def fieldname_and_data(s):
     space = s.index(" ")
@@ -102,26 +101,26 @@ def parse(sess, filename):
 def parse_lines(sess, fh):
     state = ParserState(None, ParserState.TOPLEVEL)
     for line in fh:
-        state = parse_line(sess, line.rstrip(), state)
+        parse_line(sess, line.rstrip("\n"), state)
 
 def parse_line(sess, line, state):
     if line.startswith(" "):
-        return parse_file_line(sess, line[1:], state)
-    elif line == "":
-        return parse_end_package(sess, line, state)
+        parse_file_line(sess, line[1:], state)
+    elif line.rstrip() == "":
+        parse_end_package(sess, line, state)
+    else:
+        # If we get here, then the first word of the line is package metadata
+        (field, data) = fieldname_and_data(line)
+        funcname = ("parse_%s_data" % (field)).replace("-", "_")
 
-    # If we get here, then the first word of the line is package metadata
-    (field, data) = fieldname_and_data(line)
-    funcname = ("parse_%s_data" % (field)).replace("-", "_")
+        try:
+            func = globals()[funcname]
+        except KeyError:
+            raise TeXParseError(
+                    "Unknown package metadata '%s'. Missing handler %s()" % \
+                    (field, funcname))
 
-    try:
-        func = globals()[funcname]
-    except KeyError:
-        raise TeXParseError(
-                "Unknown package metadata '%s'. Missing handler %s()" % \
-                (field, funcname))
-
-    return func(sess, data, state)
+        func(sess, data, state)
 
 filelevel_map = { \
     ParserState.DOCFILES : "d",
@@ -134,7 +133,6 @@ def parse_file_line(sess, line, state):
     assert state.pkg is not None and state.filelevel != ParserState.TOPLEVEL
     fl = File(pkgname=state.pkg.pkgname, filename=line, filetype=filelevel_map[state.filelevel])
     sess.add(fl)
-    return state
 
 def parse_end_package(sess, data, state):
     """ Called when we hit the blank line inbetween packages """
@@ -151,17 +149,18 @@ def parse_end_package(sess, data, state):
 
     sess.commit() # XXX can make faster, see code above
 
-    return ParserState(None, ParserState.TOPLEVEL)
+    state.filelevel = ParserState.TOPLEVEL
+    state.pkg = None
 
 def parse_name_data(sess, data, state):
     """ This is executed when we hit the beginning of a new package """
     assert(state.pkg is None and state.filelevel == ParserState.TOPLEVEL)
-    return ParserState(Package.skel(data), ParserState.TOPLEVEL)
+    state.pkg = Package.skel(data) # scaffold the package
+    state.filelevel = ParserState.TOPLEVEL
 
 def parse_shortdesc_data(sess, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     state.pkg.shortdesc = data
-    return state
 
 def parse_longdesc_data(sess, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
@@ -170,60 +169,56 @@ def parse_longdesc_data(sess, data, state):
         state.pkg.longdesc = ""
 
     state.pkg.longdesc += data
-    return state
 
 def parse_revision_data(sess, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     state.pkg.revision = int(data)
-    return state
 
 def parse_category_data(sess, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
-    return state
 
 def parse_depend_data(sess, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     dep = Dependency(pkgname=state.pkg.pkgname, needs=data)
     sess.add(dep)
-    return state
 
 # Note that we assume that files information comes last in a package
 def parse_runfiles_data(sess, data, state):
     assert(state.pkg is not None)
-    return ParserState(state.pkg, ParserState.RUNFILES)
+    state.filelevel = ParserState.RUNFILES
 
 def parse_docfiles_data(sess, data, state):
     assert(state.pkg is not None)
-    return ParserState(state.pkg, ParserState.DOCFILES)
+    state.filelevel = ParserState.DOCFILES
 
 def parse_srcfiles_data(sess, data, state):
     assert(state.pkg is not None)
-    return ParserState(state.pkg, ParserState.SRCFILES)
+    state.filelevel = ParserState.SRCFILES
 
 def parse_binfiles_data(sess, data, state):
     assert(state.pkg is not None)
-    return ParserState(state.pkg, ParserState.BINFILES)
+    state.filelevel = ParserState.BINFILES
 
 def parse_catalogue_data(sess, data, state):
-    return state
+    pass
 
 def parse_catalogue_ctan_data(sess, data, state):
-    return state
+    pass
 
 def parse_catalogue_date_data(sess, data, state):
-    return state
+    pass
 
 def parse_catalogue_license_data(sess, data, state):
-    return state
+    pass
 
 def parse_catalogue_version_data(sess, data, state):
-    return state
+    pass
 
 def parse_execute_data(sess, data, state):
-    return state
+    pass
 
 def parse_postaction_data(sess, data, state):
-    return state
+    pass
 
 def print_db_summary(sess):
     print(25 * "=")
