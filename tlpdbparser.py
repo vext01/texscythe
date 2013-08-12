@@ -88,13 +88,13 @@ def fieldname_and_data(s):
     space = s.index(" ")
     return (s[0:space], s[space + 1:])
 
-def user_feedback(label, num):
-    #sys.stdout.write("\r%s...%d" % (label, num))
-    sys.stdout.write("\r%s..." % label)
+def user_feedback(s):
+    sys.stdout.write(s)
     sys.stdout.flush()
 
 def parse(sess, filename):
-    user_feedback("Parsing TLPDB", 0)
+    user_feedback("Parsing TLPDB...")
+
     with open(filename, "r") as fh: parse_lines(sess, fh)
     print("\n")
 
@@ -139,15 +139,10 @@ def parse_end_package(sess, data, state):
     assert(state.pkg is not None)
     sess.add(state.pkg)
 
-    # When the parser state is mutable... XXX
-    #state.num_pkgs_parsed += 1
-    #print(state.num_pkgs_parsed)
-    #if state.num_pkgs_parsed % ParserState.COMMIT_THRESHOLD == 0:
-    #    print("commit")
-    #    sess.commit()
-    #    user_feedback("Parsing TLPDB", state.num_pkgs_parsed)
-
-    sess.commit() # XXX can make faster, see code above
+    state.num_pkgs_parsed += 1
+    if state.num_pkgs_parsed % ParserState.COMMIT_THRESHOLD == 0:
+        sess.commit()
+        user_feedback("%s..." % state.num_pkgs_parsed)
 
     state.filelevel = ParserState.TOPLEVEL
     state.pkg = None
