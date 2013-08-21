@@ -13,11 +13,10 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import sys, os, os.path
+import orm
 
 from orm import Package, Dependency, File
 from orm import DeclarativeBase
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import config
 
@@ -187,9 +186,7 @@ def initdb():
     if os.path.exists(config.SQLDBPATH): os.unlink(config.SQLDBPATH)
 
     # Set up ORM
-    engine = create_engine('sqlite:///%s' % (config.SQLDBPATH))
-    Session = sessionmaker(bind=engine)
-    sess = Session()
+    (sess, engine) = orm.init_orm()
     DeclarativeBase.metadata.create_all(engine)
 
     # Populate db

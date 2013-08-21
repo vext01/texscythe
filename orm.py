@@ -12,9 +12,11 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
+from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+
+import config
 
 DeclarativeBase = declarative_base()
 
@@ -55,3 +57,8 @@ class File(DeclarativeBase):
 
     package = relationship("Package", backref=backref("files"))
 
+def init_orm():
+    # Set up ORM
+    engine = create_engine('sqlite:///%s' % (config.SQLDBPATH))
+    Session = sessionmaker(bind=engine)
+    return (Session(), engine)

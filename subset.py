@@ -14,11 +14,8 @@
 
 import sys
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 import config
-from orm import Package, Dependency, File
+from orm import Package, Dependency, File, init_orm
 
 BLANK = 80 * " "
 def feedback(action, message):
@@ -30,10 +27,7 @@ def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
     if include_pkgs is None: include_pkgs = []
     if exclude_pkgs is None: exclude_pkgs = []
 
-    # Set up ORM
-    engine = create_engine('sqlite:///%s' % (config.SQLDBPATH))
-    Session = sessionmaker(bind=engine)
-    sess = Session()
+    (sess, engine) = init_orm()
 
     print("Collecting include files...")
     include_files = build_file_list(sess, include_pkgs)
