@@ -30,7 +30,10 @@ def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
 
     include_files = build_file_list(sess, include_pkgs)
     exclude_files = build_file_list(sess, exclude_pkgs)
-    # XXX do subtract
+    subset = include_files - exclude_files
+
+    print("Subset has %d files" % len(subset))
+
     # XXX write away
 
 def build_file_list(sess, packages):
@@ -45,10 +48,17 @@ def build_file_list(sess, packages):
 
 def build_file_list_pkg(sess, pkgname):
     print("Build file list: %s" % pkgname)
-    # XXX look up package
+    # look up package
+    pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
+
     # add files
+    files = set(pkg.files)
+
     # process deps and union with the above files.
+    print(len(pkg.dependencies))
+    for dep in pkg.dependencies:
+        print("Dependency: %s" % dep)
+        files |= build_file_list(sess, dep.pkgname)
+
     # return them
-    qry = sess.query(Package.pkgname).filter(Package.pkgname == pkgname).one()
-    print(qry)
-    return set() # XXX
+    return set(pkg.files)
