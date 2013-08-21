@@ -29,16 +29,25 @@ def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
 
     (sess, engine) = init_orm()
 
-    print("Collecting include files...")
+    sys.stderr.write("Collecting include files:\n")
     include_files = build_file_list(sess, include_pkgs)
-    print("Collecting exclude files...")
+    sys.stderr.write("Collecting exclude files:\n")
     exclude_files = build_file_list(sess, exclude_pkgs)
 
+    sys.stderr.write("Performing subtract... ")
     subset = include_files - exclude_files
+    sys.stderr.write("Done\n")
 
-    print("\nSubset has %d files" % len(subset))
+    sys.stderr.write("Sorting... ")
+    subset = sorted(subset)
+    sys.stderr.write("Done\n")
 
-    # XXX write away
+    sys.stderr.write("Writing %d filenames to '%s'... " % (len(subset), config.PLISTOUTPATH))
+
+    with open(config.PLISTOUTPATH, "w") as fh:
+        for fl in subset: fh.write(fl + "\n")
+
+    sys.stderr.write("Done\n")
 
 def build_file_list(sess, packages):
     # we have to be careful how we do this to not explode the memory.
@@ -61,7 +70,7 @@ def build_file_list_pkg(sess, pkgname):
     pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
 
     # add files
-    files = set(pkg.files)
+    files = set([ f.filename for f in set(pkg.files) ])
 
     # process deps and union with the above files.
     for dep in pkg.dependencies:
