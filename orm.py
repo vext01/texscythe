@@ -37,8 +37,9 @@ class Package(DeclarativeBase):
 class Dependency(DeclarativeBase):
     __tablename__ = "dependencies"
     id = Column(Integer, primary_key=True)
-    pkgname = Column(String)
-    needs = Column(String, ForeignKey("packages.pkgname"))
+    pkgname = Column(String, ForeignKey("packages.pkgname"))
+    #needs = Column(String, ForeignKey("packages.pkgname"))
+    needs = Column(String)
 
     package = relationship("Package", backref=backref("dependencies"))
 

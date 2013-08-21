@@ -12,11 +12,18 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import sys
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import config
 from orm import Package, Dependency, File
+
+BLANK = 80 * " "
+def feedback(action, message):
+    sys.stderr.write("\r%s\r%s: %s" % (BLANK, action, message))
+    sys.stderr.flush()
 
 def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
     # argparse gives None if switch is absent
@@ -32,7 +39,7 @@ def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
     exclude_files = build_file_list(sess, exclude_pkgs)
     subset = include_files - exclude_files
 
-    print("Subset has %d files" % len(subset))
+    print("\nSubset has %d files" % len(subset))
 
     # XXX write away
 
@@ -47,7 +54,10 @@ def build_file_list(sess, packages):
     return files
 
 def build_file_list_pkg(sess, pkgname):
-    print("Build file list: %s" % pkgname)
+    feedback("Building file list", pkgname)
+    if "ARCH" in pkgname: # XXX make configurable
+        return set()
+
     # look up package
     pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
 
@@ -55,10 +65,8 @@ def build_file_list_pkg(sess, pkgname):
     files = set(pkg.files)
 
     # process deps and union with the above files.
-    print(len(pkg.dependencies))
     for dep in pkg.dependencies:
-        print("Dependency: %s" % dep)
-        files |= build_file_list(sess, dep.pkgname)
+        files |= build_file_list_pkg(sess, dep.needs)
 
     # return them
     return set(pkg.files)
