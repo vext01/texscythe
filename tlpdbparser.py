@@ -13,54 +13,18 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import sys, os, os.path
+from orm import Package, Dependency, File
+from orm import DeclarativeBase
 
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship, backref
-from sqlalchemy.ext.declarative import declarative_base
+#from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+#from sqlalchemy.orm import sessionmaker, relationship, backref
+#from sqlalchemy.ext.declarative import declarative_base
 
-# ---/// ORM Mappings ///----------------------------------------------
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-# XXX Categories
-# XXX catalogue-*
-
-Base = declarative_base()
 SQLDBPATH = "texscythe.db" # may need to make condfigurable one day
 TLPDBPATH = "texlive.tlpdb"# again...
-
-class Package(Base):
-    __tablename__ = "packages"
-    # It may not be good relational database design to use a name as a primary
-    # key, but it does mean that we only need a single pass over the tlpdb.
-    # This is because we immediately know the primary key of dependencies.
-    pkgname = Column(String, primary_key=True)
-    revision = Column(Integer)
-    shortdesc = Column(String)
-    longdesc = Column(String)
-
-    @staticmethod
-    def skel(pkgname): return Package(pkgname=pkgname) # fill in the rest as we find it
-
-class Dependency(Base):
-    __tablename__ = "dependencies"
-    id = Column(Integer, primary_key=True)
-    pkgname = Column(String)
-    needs = Column(String, ForeignKey("packages.pkgname"))
-
-    package = relationship("Package", backref=backref("dependencies"))
-
-    def __str__(self):
-        return "Dependency: %s needs %s" % (self.pkgname, self.needs)
-
-class File(Base):
-    __tablename__ = "files"
-    id = Column(Integer, primary_key=True)
-    pkgname = Column(String, ForeignKey("packages.pkgname"))
-    filename = Column(String)
-    filetype = Column(String) # [r]unfile/[s]rcfile/[d]ocfile/[b]infile
-
-    package = relationship("Package", backref=backref("files"))
-
-# ---/// Parsing Gunk ///----------------------------------------------
 
 class TeXParseError(Exception): pass
 
@@ -231,7 +195,7 @@ def initdb():
     engine = create_engine('sqlite:///%s' % (SQLDBPATH))
     Session = sessionmaker(bind=engine)
     sess = Session()
-    Base.metadata.create_all(engine) 
+    DeclarativeBase.metadata.create_all(engine)
 
     # Populate db
     parse(sess, TLPDBPATH)
