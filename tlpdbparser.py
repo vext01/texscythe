@@ -13,17 +13,13 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import sys, os, os.path
+
 from orm import Package, Dependency, File
 from orm import DeclarativeBase
-
-import config
-
-#from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-#from sqlalchemy.orm import sessionmaker, relationship, backref
-#from sqlalchemy.ext.declarative import declarative_base
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+import config
 
 class TeXParseError(Exception): pass
 
