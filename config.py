@@ -12,5 +12,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-SQLDBPATH = "texscythe.db" # may need to make configurable one day
-TLPDBPATH = "texlive.tlpdb"# again...
+# XXX: These all need to be configurable
+SQLDBPATH = "texscythe.db"
+TLPDBPATH = "texlive.tlpdb"
+PLISTOUTPATH = "PLIST"

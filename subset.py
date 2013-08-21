@@ -22,7 +22,7 @@ from orm import Package, Dependency, File
 
 BLANK = 80 * " "
 def feedback(action, message):
-    sys.stderr.write("\r%s\r%s: %s" % (BLANK, action, message))
+    sys.stderr.write("\r%s\r  %s: %s" % (BLANK, action, message))
     sys.stderr.flush()
 
 def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
@@ -35,8 +35,11 @@ def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
     Session = sessionmaker(bind=engine)
     sess = Session()
 
+    print("Collecting include files...")
     include_files = build_file_list(sess, include_pkgs)
+    print("Collecting exclude files...")
     exclude_files = build_file_list(sess, exclude_pkgs)
+
     subset = include_files - exclude_files
 
     print("\nSubset has %d files" % len(subset))
@@ -48,8 +51,10 @@ def build_file_list(sess, packages):
     # let's iteratively collect file lists from packages and accumulate them
     # in a set. This will remove duplicates as we go.
     files = set()
-    for p in packages:
-        files = files | build_file_list_pkg(sess, p)
+    for pkgname in packages:
+        new_files = build_file_list_pkg(sess, pkgname)
+        feedback("Building file list", "done: %s has %d files\n" % (pkgname, len(new_files)))
+        files |= new_files
 
     return files
 
@@ -69,4 +74,4 @@ def build_file_list_pkg(sess, pkgname):
         files |= build_file_list_pkg(sess, dep.needs)
 
     # return them
-    return set(pkg.files)
+    return files
