@@ -16,15 +16,14 @@ import sys, os, os.path
 from orm import Package, Dependency, File
 from orm import DeclarativeBase
 
+import config
+
 #from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 #from sqlalchemy.orm import sessionmaker, relationship, backref
 #from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-SQLDBPATH = "texscythe.db" # may need to make condfigurable one day
-TLPDBPATH = "texlive.tlpdb"# again...
 
 class TeXParseError(Exception): pass
 
@@ -189,16 +188,16 @@ def print_db_summary(sess):
 
 def initdb():
     # Since we will only ever use sqlite, we can do this
-    if os.path.exists(SQLDBPATH): os.unlink(SQLDBPATH)
+    if os.path.exists(config.SQLDBPATH): os.unlink(config.SQLDBPATH)
 
     # Set up ORM
-    engine = create_engine('sqlite:///%s' % (SQLDBPATH))
+    engine = create_engine('sqlite:///%s' % (config.SQLDBPATH))
     Session = sessionmaker(bind=engine)
     sess = Session()
     DeclarativeBase.metadata.create_all(engine)
 
     # Populate db
-    parse(sess, TLPDBPATH)
+    parse(sess, config.TLPDBPATH)
     sess.commit()
 
     # Done
