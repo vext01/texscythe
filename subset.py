@@ -45,7 +45,7 @@ def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
     sys.stderr.write("Writing %d filenames to '%s'... " % (len(subset), config.PLISTOUTPATH))
 
     with open(config.PLISTOUTPATH, "w") as fh:
-        for fl in subset: fh.write(fl + "\n")
+        for fl in subset: fh.write("%s%s\n" % (config.PLISTFILEPREFIX, fl))
 
     sys.stderr.write("Done\n")
 

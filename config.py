@@ -16,3 +16,5 @@
 SQLDBPATH = "texscythe.db"
 TLPDBPATH = "texlive.tlpdb"
 PLISTOUTPATH = "PLIST"
+PLISTFILEPREFIX = "share/"
+
