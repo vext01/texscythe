@@ -16,8 +16,32 @@ import argparse
 
 VERSION=0.1
 
+EPILOG = """
+INCLUDE and EXCLUDE are package specs of the form:
+
+  pkgname | pkgname:filetype1, ..., filetype_n
+
+The first variant includes all file types. Filetypes: run, src, doc, bin.
+
+Example usage:
+
+  Initialise the database:
+
+      $ texscythe --initdb
+
+  Compute a subset with scheme-tetex excluding scheme-mininial's docfiles:
+
+      $ texscythe --subset -i scheme-tetex -x scheme-minimal:doc
+"""
+
+DESCR = "Compute subsets of the TeX Live texmf tree."""
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+            epilog=EPILOG,
+            description=DESCR,
+            formatter_class=argparse.RawDescriptionHelpFormatter
+    )
 
     parser.add_argument("--initdb", action='store_true',
             help="initialise the database")
