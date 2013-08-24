@@ -98,7 +98,10 @@ def build_file_list_pkg(sess, pkgname, filetypes):
     pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
 
     # add files
-    files = set([ f.filename for f in set(pkg.files) ])
+    files = set()
+    for filetype in filetypes:
+        files |= set([ f.filename for f in \
+                pkg.files.filter(File.filetype == filetype[0]).all() ])
 
     # process deps and union with the above files.
     for dep in pkg.dependencies:

@@ -55,7 +55,7 @@ class File(DeclarativeBase):
     filename = Column(String)
     filetype = Column(String) # [r]unfile/[s]rcfile/[d]ocfile/[b]infile
 
-    package = relationship("Package", backref=backref("files"))
+    package = relationship("Package", backref=backref("files", lazy='dynamic'))
 
 def init_orm():
     # Set up ORM
