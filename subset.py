@@ -17,22 +17,50 @@ import sys
 import config
 from orm import Package, Dependency, File, init_orm
 
+class SubsetError(Exception): pass
+
 BLANK = 80 * " "
 def feedback(action, message):
     sys.stderr.write("\r%s\r  %s: %s" % (BLANK, action, message))
     sys.stderr.flush()
 
-def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
+def parse_subset_spec(spec):
+    """ Parse subset specs. E.g.:
+        scheme-tetex
+        scheme-tetex:src
+        scheme-tetex:src,run,doc
+
+        returns a tuple, (name, list_of_filetypes)
+    """
+
+    elems = spec.split(":")
+    if len(elems) == 1:
+        return (elems[0], ["run", "src", "doc", "bin"])
+    elif len(elems) == 2:
+        filetypes = elems[1].split(",")
+        for t in filetypes:
+            if t == "": break # user passed "pkgname:"
+            if t not in ["run", "src", "doc", "bin"]:
+                raise SubsetError("Unknown file type: '%s'" % (t, ))
+        return (elems[0], filetypes)
+    else:
+        raise SubsetError("Malformed pkgspec: '%s'" % (spec, ))
+
+def compute_subset(include_pkgspecs, exclude_pkgspecs, outfilename="out.plist"):
     # argparse gives None if switch is absent
-    if include_pkgs is None: include_pkgs = []
-    if exclude_pkgs is None: exclude_pkgs = []
+    if include_pkgspecs is None: include_pkgspecs = []
+    if exclude_pkgspecs is None: exclude_pkgspecs = []
+
+    # parse the pkgspecs
+    include_tuples = [ parse_subset_spec(s) for s in include_pkgspecs ]
+    exclude_tuples = [ parse_subset_spec(s) for s in exclude_pkgspecs ]
 
     (sess, engine) = init_orm()
 
     sys.stderr.write("Collecting include files:\n")
-    include_files = build_file_list(sess, include_pkgs)
+    include_files = build_file_list(sess, include_tuples)
     sys.stderr.write("Collecting exclude files:\n")
-    exclude_files = build_file_list(sess, exclude_pkgs)
+    exclude_files = build_file_list(sess, exclude_tuples)
 
     sys.stderr.write("Performing subtract... ")
     subset = include_files - exclude_files
@@ -49,19 +77,19 @@ def compute_subset(include_pkgs, exclude_pkgs, outfilename="out.plist"):
 
     sys.stderr.write("Done\n")
 
-def build_file_list(sess, packages):
+def build_file_list(sess, pkg_tuples):
     # we have to be careful how we do this to not explode the memory.
     # let's iteratively collect file lists from packages and accumulate them
     # in a set. This will remove duplicates as we go.
     files = set()
-    for pkgname in packages:
-        new_files = build_file_list_pkg(sess, pkgname)
+    for (pkgname, filetypes) in pkg_tuples:
+        new_files = build_file_list_pkg(sess, pkgname, filetypes)
         feedback("Building file list", "done: %s has %d files\n" % (pkgname, len(new_files)))
         files |= new_files
 
     return files
 
-def build_file_list_pkg(sess, pkgname):
+def build_file_list_pkg(sess, pkgname, filetypes):
     feedback("Building file list", pkgname)
     if "ARCH" in pkgname: # XXX make configurable
         return set()
@@ -74,7 +102,7 @@ def build_file_list_pkg(sess, pkgname):
 
     # process deps and union with the above files.
     for dep in pkg.dependencies:
-        files |= build_file_list_pkg(sess, dep.needs)
+        files |= build_file_list_pkg(sess, dep.needs, filetypes)
 
     # return them
     return files
