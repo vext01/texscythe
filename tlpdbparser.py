@@ -89,7 +89,16 @@ filelevel_map = { \
 def parse_file_line(sess, line, state):
     """ We get here when we see a file that is part of a package """
     assert state.pkg is not None and state.filelevel != ParserState.TOPLEVEL
-    fl = File(pkgname=state.pkg.pkgname, filename=line, filetype=filelevel_map[state.filelevel])
+
+    # Some file lines have junk on the end.
+    # This slows us down a bit, but I would rather have this sanity check
+    # in case later versions of tlpdb include stuff we should know about.
+    fields = line.split(" ")
+    if not (len(fields) == 1 or fields[1].startswith("details=")):
+        raise TeXParseError("Weird file line: %d<<%s>> '%s'" % \
+                (len(fields), fields, line, ))
+
+    fl = File(pkgname=state.pkg.pkgname, filename=fields[0], filetype=filelevel_map[state.filelevel])
     sess.add(fl)
 
 def parse_end_package(sess, data, state):
