@@ -34,7 +34,7 @@ Example usage:
       $ texscythe --subset -i scheme-tetex -x scheme-minimal:doc
 """
 
-DESCR = "Compute subsets of the TeX Live texmf tree."""
+DESCR = "Compute subsets of the TeX Live texmf tree."
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
