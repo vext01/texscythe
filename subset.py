@@ -84,7 +84,8 @@ def build_file_list(sess, pkg_tuples):
     files = set()
     for (pkgname, filetypes) in pkg_tuples:
         new_files = build_file_list_pkg(sess, pkgname, filetypes)
-        feedback("Building file list", "done: %s has %d files\n" % (pkgname, len(new_files)))
+        feedback("Building file list", "done: %s:%s has %d files\n" % \
+                (pkgname, ",".join(filetypes), len(new_files)))
         files |= new_files
 
     return files
