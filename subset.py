@@ -81,19 +81,33 @@ def build_file_list(sess, pkg_tuples):
     # we have to be careful how we do this to not explode the memory.
     # let's iteratively collect file lists from packages and accumulate them
     # in a set. This will remove duplicates as we go.
+
+    # Speed up file collection by noting which packages have already been
+    # processed. Seems to make a big performance difference at the cost
+    # of storing this large dict.
+    seen_packages = {}
+
     files = set()
     for (pkgname, filetypes) in pkg_tuples:
-        new_files = build_file_list_pkg(sess, pkgname, filetypes)
+        new_files = build_file_list_pkg(sess, pkgname, filetypes, seen_packages)
         feedback("Building file list", "done: %s:%s has %d files\n" % \
                 (pkgname, ",".join(filetypes), len(new_files)))
         files |= new_files
 
     return files
 
-def build_file_list_pkg(sess, pkgname, filetypes):
+def build_file_list_pkg(sess, pkgname, filetypes, seen_packages):
     feedback("Building file list", pkgname)
     if "ARCH" in pkgname: # XXX make configurable
         return set()
+
+    try:
+        seen_packages[pkgname]
+        return set() # already processed this pkg
+    except KeyError:
+        pass
+
+    seen_packages[pkgname] = True
 
     # look up package
     pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
@@ -106,7 +120,7 @@ def build_file_list_pkg(sess, pkgname, filetypes):
 
     # process deps and union with the above files.
     for dep in pkg.dependencies:
-        files |= build_file_list_pkg(sess, dep.needs, filetypes)
+        files |= build_file_list_pkg(sess, dep.needs, filetypes, seen_packages)
 
     # return them
     return files
