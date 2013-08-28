@@ -36,6 +36,12 @@ Example usage:
 
 DESCR = "Compute subsets of the TeX Live texmf tree."
 
+def print_version():
+        print(72 * "-")
+        print("  TeXScythe Version %s" % (VERSION))
+        print("  (c) Edd Barrett 2013 <vext01@gmail.com> <edd@openbsd.org>")
+        print(72 * "-")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
             epilog=EPILOG,
@@ -53,6 +59,14 @@ if __name__ == "__main__":
             help="exclude package in subset")
     parser.add_argument("--version", action='store_true',
             help="show version")
+    parser.add_argument("-P", "--prefix_filenames",
+            help="prefix string to filenames")
+    parser.add_argument("-o", "--output-plist",
+            help="output filename")
+    parser.add_argument("-t", "--tlpdb",
+            help="path to texive.tlpdb")
+    parser.add_argument("-d", "--sqldb",
+            help="path to sqlite3 database")
 
     args = parser.parse_args()
 
@@ -63,13 +77,38 @@ if __name__ == "__main__":
     if len(chosen_tasks) != 1:
         parser.error("please select a single primary task.\n  one of: --initdb, --subset, --version")
 
+    # setup configuration
+    config = {
+            "sqldb"             : "texscythe.db",
+            "plist"             : "PLIST",
+            "prefix_filenames"  : "",
+            "tlpdb"             : "texlive.tlpdb",
+    }
+
+    if args.sqldb is not None:
+        config["sqldb"] = args.sqldb
+    if args.prefix_filenames is not None:
+        config["prefix_filenames"] = args.prefix_filenames
+    if args.output_plist is not None:
+        config["plist"] = args.output_plist
+    if args.tlpdb is not None:
+        config["tlpdb"] = args.tlpdb
+
+    if not args.version:
+        print_version()
+        print("\nRunning with configuration:")
+        for k in config.iterkeys():
+            print("    %s: %s" % (k.ljust(25), config[k]))
+        print("")
+
+    # primary tasks
     if args.subset:
         import subset
-        subset.compute_subset(args.include, args.exclude)
+        subset.compute_subset(config, args.include, args.exclude)
     elif args.initdb:
         import tlpdbparser
-        tlpdbparser.initdb()
+        tlpdbparser.initdb(config)
     elif args.version:
-        print("TeXScythe Version %s" % (VERSION))
+        print_version()
     else:
         assert False # should not happen

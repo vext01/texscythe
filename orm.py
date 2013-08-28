@@ -16,8 +16,6 @@ from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-import config
-
 DeclarativeBase = declarative_base()
 
 class Package(DeclarativeBase):
@@ -57,8 +55,8 @@ class File(DeclarativeBase):
 
     package = relationship("Package", backref=backref("files", lazy='dynamic'))
 
-def init_orm():
+def init_orm(tlpdb_path):
     # Set up ORM
-    engine = create_engine('sqlite:///%s' % (config.SQLDBPATH))
+    engine = create_engine('sqlite:///%s' % (tlpdb_path,))
     Session = sessionmaker(bind=engine)
     return (Session(), engine)

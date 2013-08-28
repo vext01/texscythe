@@ -14,7 +14,6 @@
 
 import sys
 
-import config
 from orm import Package, Dependency, File, init_orm
 
 class SubsetError(Exception): pass
@@ -46,7 +45,7 @@ def parse_subset_spec(spec):
     else:
         raise SubsetError("Malformed pkgspec: '%s'" % (spec, ))
 
-def compute_subset(include_pkgspecs, exclude_pkgspecs, outfilename="out.plist"):
+def compute_subset(config, include_pkgspecs, exclude_pkgspecs):
     # argparse gives None if switch is absent
     if include_pkgspecs is None: include_pkgspecs = []
     if exclude_pkgspecs is None: exclude_pkgspecs = []
@@ -55,7 +54,7 @@ def compute_subset(include_pkgspecs, exclude_pkgspecs, outfilename="out.plist"):
     include_tuples = [ parse_subset_spec(s) for s in include_pkgspecs ]
     exclude_tuples = [ parse_subset_spec(s) for s in exclude_pkgspecs ]
 
-    (sess, engine) = init_orm()
+    (sess, engine) = init_orm(config["sqldb"])
 
     sys.stderr.write("Collecting include files:\n")
     include_files = build_file_list(sess, include_tuples)
@@ -70,10 +69,10 @@ def compute_subset(include_pkgspecs, exclude_pkgspecs, outfilename="out.plist"):
     subset = sorted(subset)
     sys.stderr.write("Done\n")
 
-    sys.stderr.write("Writing %d filenames to '%s'... " % (len(subset), config.PLISTOUTPATH))
+    sys.stderr.write("Writing %d filenames to '%s'... " % (len(subset), config["plist"]))
 
-    with open(config.PLISTOUTPATH, "w") as fh:
-        for fl in subset: fh.write("%s%s\n" % (config.PLISTFILEPREFIX, fl))
+    with open(config["plist"], "w") as fh:
+        for fl in subset: fh.write("%s%s\n" % (config["prefix_filenames"], fl))
 
     sys.stderr.write("Done\n")
 
@@ -98,7 +97,7 @@ def build_file_list(sess, pkg_tuples):
 
 def build_file_list_pkg(sess, pkgname, filetypes, seen_packages):
     feedback("Building file list", pkgname)
-    if "ARCH" in pkgname: # XXX make configurable
+    if "ARCH" in pkgname: # XXX make configurable?
         return set()
 
     try:

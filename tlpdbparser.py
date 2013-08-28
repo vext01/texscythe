@@ -18,8 +18,6 @@ import orm
 from orm import Package, Dependency, File
 from orm import DeclarativeBase
 
-import config
-
 class TeXParseError(Exception): pass
 
 class ParserState(object):
@@ -190,16 +188,16 @@ def print_db_summary(sess):
     print("Files:        %8d" % sess.query(File).count())
     print("Dependencies: %8d" % sess.query(Dependency).count())
 
-def initdb():
+def initdb(config):
     # Since we will only ever use sqlite, we can do this
-    if os.path.exists(config.SQLDBPATH): os.unlink(config.SQLDBPATH)
+    if os.path.exists(config["sqldb"]): os.unlink(config["sqldb"])
 
     # Set up ORM
-    (sess, engine) = orm.init_orm()
+    (sess, engine) = orm.init_orm(config["sqldb"])
     DeclarativeBase.metadata.create_all(engine)
 
     # Populate db
-    parse(sess, config.TLPDBPATH)
+    parse(sess, config["tlpdb"])
     sess.commit()
 
     # Done
