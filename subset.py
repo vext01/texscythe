@@ -57,9 +57,9 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs):
     (sess, engine) = init_orm(config["sqldb"])
 
     sys.stderr.write("Collecting include files:\n")
-    include_files = build_file_list(sess, include_tuples)
+    include_files = build_file_list(config, sess, include_tuples)
     sys.stderr.write("Collecting exclude files:\n")
-    exclude_files = build_file_list(sess, exclude_tuples)
+    exclude_files = build_file_list(config, sess, exclude_tuples)
 
     sys.stderr.write("Performing subtract... ")
     subset = include_files - exclude_files
@@ -76,7 +76,7 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs):
 
     sys.stderr.write("Done\n")
 
-def build_file_list(sess, pkg_tuples):
+def build_file_list(config, sess, pkg_tuples):
     # we have to be careful how we do this to not explode the memory.
     # let's iteratively collect file lists from packages and accumulate them
     # in a set. This will remove duplicates as we go.
@@ -88,17 +88,23 @@ def build_file_list(sess, pkg_tuples):
 
     files = set()
     for (pkgname, filetypes) in pkg_tuples:
-        new_files = build_file_list_pkg(sess, pkgname, filetypes, seen_packages)
+        new_files = build_file_list_pkg(config, sess, pkgname, filetypes, seen_packages)
         feedback("Building file list", "done: %s:%s has %d files\n" % \
                 (pkgname, ",".join(filetypes), len(new_files)))
         files |= new_files
 
     return files
 
-def build_file_list_pkg(sess, pkgname, filetypes, seen_packages):
+def build_file_list_pkg(config, sess, pkgname, filetypes, seen_packages):
     feedback("Building file list", pkgname)
-    if "ARCH" in pkgname: # XXX make configurable?
-        return set()
+
+    if "ARCH" in pkgname:
+        # If a cpu architecture was not sepcified, then binaries are ignored.
+        if config["arch"] is None:
+            return set()
+        else:
+            # substitute in arch name
+            pkgname = pkgname.replace("ARCH", config["arch"])
 
     try:
         seen_packages[pkgname]
@@ -109,7 +115,11 @@ def build_file_list_pkg(sess, pkgname, filetypes, seen_packages):
     seen_packages[pkgname] = True
 
     # look up package
-    pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
+    try:
+        pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
+    except:
+        sys.stderr.write("\nERROR: Could not find package '%s'\n" % pkgname)
+        sys.exit(1)
 
     # add files
     files = set()
@@ -119,7 +129,7 @@ def build_file_list_pkg(sess, pkgname, filetypes, seen_packages):
 
     # process deps and union with the above files.
     for dep in pkg.dependencies:
-        files |= build_file_list_pkg(sess, dep.needs, filetypes, seen_packages)
+        files |= build_file_list_pkg(config, sess, dep.needs, filetypes, seen_packages)
 
     # return them
     return files

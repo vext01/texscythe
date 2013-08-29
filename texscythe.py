@@ -67,6 +67,9 @@ if __name__ == "__main__":
             help="path to texive.tlpdb")
     parser.add_argument("-d", "--sqldb",
             help="path to sqlite3 database")
+    parser.add_argument("-a", "--arch",
+            help="cpu architecure, e.g. 'alpha-linux' "
+            "(if not set, ARCH pkgs ignored)")
 
     args = parser.parse_args()
 
@@ -83,6 +86,7 @@ if __name__ == "__main__":
             "plist"             : "PLIST",
             "prefix_filenames"  : "",
             "tlpdb"             : "texlive.tlpdb",
+            "arch"              : None,
     }
 
     if args.sqldb is not None:
@@ -93,6 +97,8 @@ if __name__ == "__main__":
         config["plist"] = args.output_plist
     if args.tlpdb is not None:
         config["tlpdb"] = args.tlpdb
+    if args.arch is not None:
+        config["arch"] = args.arch
 
     if not args.version:
         print_version()
