@@ -2,9 +2,6 @@ import os.path, pytest, sys
 
 MYPATH = os.path.abspath(__file__)
 DIRPATH = os.path.dirname(MYPATH)
-DBPATH = os.path.join(DIRPATH, "basic.db")
-TLPDBPATH = os.path.join(DIRPATH, "basic.tlpdb")
-PLISTPATH = os.path.join(DIRPATH, "PLIST-basic")
 
 sys.path.append(os.path.join(DIRPATH, ".."))
 from orm import File, Package
@@ -14,10 +11,10 @@ class Test_Basic(object):
 
     def setup_class(self):
         self.config = {
-            "sqldb"             : DBPATH,
-            "plist"             : PLISTPATH,
+            "sqldb"             : os.path.join(DIRPATH, "basic.db"),
+            "plist"             : os.path.join(DIRPATH, "PLIST-basic"),
             "prefix_filenames"  : "",
-            "tlpdb"             : TLPDBPATH,
+            "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
             "arch"              : None,
         }
 
