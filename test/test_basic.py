@@ -83,10 +83,26 @@ class Test_Basic(object):
 
         assert files == expected
 
+    def test_plist_no_docfiles(self):
+        subset.compute_subset(self.config,
+                ["rootpkg"], ["rootpkg:doc"], self.sess)
+        files = self._read_in_plist()
+
+        expected = sorted([ "runfiles/runfile%d" % x for x in range(1, 4) ] +
+                [ "srcfiles/srcfile1" ])
+
+        assert files == expected
+
+    def test_plist_exlude_all(self):
+        subset.compute_subset(self.config,
+                ["rootpkg"], ["rootpkg"], self.sess)
+        files = self._read_in_plist()
+
+        assert files == []
+
 # XXX:
 # Test arch specific
 # Test "details ="
-# test subset with exclude
 # test multiple include/exclude
 # test explicit everything 'run,src,doc,bin'
 # Test error cases
