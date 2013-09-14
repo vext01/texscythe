@@ -45,7 +45,7 @@ def parse_subset_spec(spec):
     else:
         raise SubsetError("Malformed pkgspec: '%s'" % (spec, ))
 
-def compute_subset(config, include_pkgspecs, exclude_pkgspecs):
+def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
     # argparse gives None if switch is absent
     if include_pkgspecs is None: include_pkgspecs = []
     if exclude_pkgspecs is None: exclude_pkgspecs = []
@@ -54,7 +54,8 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs):
     include_tuples = [ parse_subset_spec(s) for s in include_pkgspecs ]
     exclude_tuples = [ parse_subset_spec(s) for s in exclude_pkgspecs ]
 
-    (sess, engine) = init_orm(config["sqldb"])
+    if sess is None:
+        (sess, engine) = init_orm(config["sqldb"])
 
     sys.stderr.write("Collecting include files:\n")
     include_files = build_file_list(config, sess, include_tuples)
