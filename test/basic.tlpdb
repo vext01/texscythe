@@ -1,0 +1,33 @@
+name rootpkg
+category core
+revision 666
+shortdesc toplevel test package
+longdesc rootpkg desc line 1
+longdesc rootpkg desc line 2
+longdesc rootpkg desc line 3
+longdesc rootpkg desc line 4
+longdesc rootpkg desc line 5
+depend pkg_1
+depend pkg_2.ARCH
+
+name pkg_1
+category stuff
+shortdesc pkg_1 test package
+longdesc pkg_1 desc line 1
+longdesc pkg_1 desc line 2
+runfiles size=66
+ runfiles/runfile1
+ runfiles/runfile2
+ runfiles/runfile3
+docfiles size=77
+ docfiles/docfile1
+ docfiles/docfile2
+srcfiles size=1
+ srcfiles/srcfile1
+
+name pkg_2.amd64-linux
+shortdesc pkg_2 test package
+longdesc pkg_2 desc line 1
+longdesc pkg_2 desc line 2
+binfiles arch=amd64-linux size=89
+ binfiles/binfile1

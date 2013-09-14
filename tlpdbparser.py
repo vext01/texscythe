@@ -59,6 +59,11 @@ def parse_lines(sess, fh):
     for line in fh:
         parse_line(sess, line.rstrip("\n"), state)
 
+    # Commit the last package we saw since we may
+    # not have seen a newline to otherwise cause the commit.
+    if state.pkg is not None:
+        sess.add(state.pkg)
+
 def parse_line(sess, line, state):
     if line.startswith(" "):
         parse_file_line(sess, line[1:], state)
@@ -188,7 +193,7 @@ def print_db_summary(sess):
     print("Files:        %8d" % sess.query(File).count())
     print("Dependencies: %8d" % sess.query(Dependency).count())
 
-def initdb(config):
+def initdb(config, return_sess = False):
     # Since we will only ever use sqlite, we can do this
     if os.path.exists(config["sqldb"]): os.unlink(config["sqldb"])
 
@@ -202,5 +207,8 @@ def initdb(config):
 
     # Done
     print_db_summary(sess)
-    sess.close()
 
+    if not return_sess:
+        sess.close()
+    else:
+        return sess
