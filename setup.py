@@ -11,10 +11,7 @@ setup (name              = 'texscythe',
        license           = 'MIT',
        long_description  = 'TeX Live texmf subsetter',
        url               = 'https://github.com/vext01/texscythe',
-       platforms         = ['Any'],
        packages          = ['texscythe'],
-       py_modules        = [],
-       scripts           = [''],
-       package_dir       = {'': 'lib/'},
+       package_dir       = {'': './lib/'},
        )
 
