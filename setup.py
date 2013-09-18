@@ -12,5 +12,5 @@ setup(name              = 'texscythe',
       long_description  = 'TeX Live texmf subsetter',
       url               = 'https://github.com/vext01/texscythe',
       packages          = ['texscythe'],
-      package_dir       = {'': './lib/'},
+      scripts           = ['texscythe.py'],
       )

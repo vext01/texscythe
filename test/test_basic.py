@@ -4,8 +4,8 @@ MYPATH = os.path.abspath(__file__)
 DIRPATH = os.path.dirname(MYPATH)
 
 sys.path.append(os.path.join(DIRPATH, ".."))
-from orm import File, Package
-import tlpdbparser, subset
+from texscythe.orm import File, Package
+from texscythe import tlpdbparser, subset
 
 class Test_Basic(object):
 

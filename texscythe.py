@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2013, Edd Barrett <edd@openbsd.org> <vext01@gmail.com>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -109,10 +110,10 @@ if __name__ == "__main__":
 
     # primary tasks
     if args.subset:
-        import subset
+        from texscythe import subset
         subset.compute_subset(config, args.include, args.exclude)
     elif args.initdb:
-        import tlpdbparser
+        from texscythe import tlpdbparser
         tlpdbparser.initdb(config)
     elif args.version:
         print_version()
