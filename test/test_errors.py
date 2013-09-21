@@ -14,7 +14,7 @@ class Test_Errors(object):
             "sqldb"             : os.path.join(DIRPATH, "errors.db"),
             "plist"             : os.path.join(DIRPATH, "PLIST-errors"),
             "prefix_filenames"  : "",
-            "tlpdb"             : "error_" + tlpdb + ".tlpdb",
+            "tlpdb"             : tlpdb + ".tlpdb",
             "arch"              : None,
         }
         self.sess = tlpdbparser.initdb(self.config, return_sess=True)
@@ -36,11 +36,26 @@ class Test_Errors(object):
             pass
 
     def test_weird_line_postfix(self):
-        pytest.raises(TeXParseError, 'self.parse_file("weird_line_postfix")')
+        pytest.raises(TeXParseError, 'self.parse_file("error_weird_line_postfix")')
 
     def test_files_not_indented(self):
-        pytest.raises(TeXParseError, 'self.parse_file("files_not_indented")')
+        pytest.raises(TeXParseError, 'self.parse_file("error_files_not_indented")')
 
     def test_nonexistent_dep(self):
-        self.parse_file("nonexistent_dep")
-        pytest.raises(TeXSubsetError, 'subset.compute_subset(self.config, ["rootpkg"], None, self.sess)')
+        self.parse_file("error_nonexistent_dep")
+        pytest.raises(TeXSubsetError,
+            'subset.compute_subset(self.config, ["rootpkg"], None, self.sess)')
+
+    def test_unknwown_filetype(self):
+        pytest.raises(TeXParseError, 'self.parse_file("error_unknown_filetype")')
+
+    def test_nonexistent_dep(self):
+        self.parse_file("basic") # should work
+        # now ask for a class of file which is bogus, in this case 'fartfiles'
+        pytest.raises(TeXSubsetError,
+            'subset.compute_subset(self.config, ["rootpkg:fart"], None, self.sess)')
+
+    def test_malformed_pkgspec(self):
+        self.parse_file("basic") # should work
+        pytest.raises(TeXSubsetError,
+            'subset.compute_subset(self.config, ["rootpkg:doc:ouch"], None, self.sess)')
