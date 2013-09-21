@@ -86,6 +86,13 @@ class Test_Basic(AbstractTest):
 
         assert files == []
 
+    def test_filename_prefix(self):
+        self.config["prefix_filenames"] = "share/"
+        subset.compute_subset(self.config, ["rootpkg:src"], None, self.sess)
+        files = self._read_in_plist()
+
+        assert files == ["share/srcfiles/srcfile1"]
+
 class Test_BasicWithArch(AbstractTest):
 
     def setup_method(self, method):
@@ -105,6 +112,7 @@ class Test_BasicWithArch(AbstractTest):
 
         # Since we *did* supply an arch we should see binfiles here
         assert files == ['binfiles/binfile1']
+
 
 # XXX:
 # test multiple include/exclude
