@@ -20,7 +20,6 @@ class Test_Errors(object):
     def teardown_method(self, method):
         # these shouldn't be needed as all tlpdbs have errors.
         # clean up incase a test does not expectedly fail
-        self.sess.close()
         try:
             os.unlink(self.config["sqldb"])
         except:
@@ -40,6 +39,6 @@ class Test_Errors(object):
     def test_weird_line_postfix(self):
         self.parse_file("weird_line_postfix")
 
-    #@pytest.mark.xfail
+    @pytest.mark.xfail
     def test_files_not_indented(self):
         self.parse_file("files_not_indented")
