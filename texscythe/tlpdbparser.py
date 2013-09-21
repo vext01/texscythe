@@ -54,7 +54,11 @@ def user_feedback(s):
 def parse(sess, filename):
     user_feedback("Parsing TLPDB...")
 
-    with open(filename, "r") as fh: parse_lines(sess, fh)
+    if filename.endswith(".gz"):
+        import gzip
+        with gzip.open(filename, "r") as fh: parse_lines(sess, fh)
+    else:
+        with open(filename, "r") as fh: parse_lines(sess, fh)
     print("\n")
 
 def parse_lines(sess, fh):

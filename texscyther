@@ -33,6 +33,8 @@ Example usage:
   Compute a subset with scheme-tetex excluding scheme-mininial's docfiles:
 
       $ texscyther --subset -i scheme-tetex -x scheme-minimal:doc
+
+  texscyther will accept gzipped tlpdb files.
 """
 
 DESCR = "Compute subsets of the TeX Live texmf tree."
