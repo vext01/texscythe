@@ -148,6 +148,3 @@ class Test_BasicWithArch(AbstractTest):
         files2 = self._read_in_plist()
 
         assert files1 == files2
-
-# XXX:
-# test multiple include/exclude
