@@ -14,7 +14,7 @@ class Test_Errors(object):
             "sqldb"             : os.path.join(DIRPATH, "errors.db"),
             "plist"             : os.path.join(DIRPATH, "PLIST-errors"),
             "prefix_filenames"  : "",
-            "tlpdb"             : tlpdb + ".tlpdb",
+            "tlpdb"             : os.path.join(DIRPATH, tlpdb + ".tlpdb"),
             "arch"              : None,
         }
         self.sess = tlpdbparser.initdb(self.config, return_sess=True)
