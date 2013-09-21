@@ -113,8 +113,16 @@ class Test_BasicWithArch(AbstractTest):
         # Since we *did* supply an arch we should see binfiles here
         assert files == ['binfiles/binfile1']
 
+    def test_explicit_everything(self):
+        subset.compute_subset(self.config, ["rootpkg"], None, self.sess)
+        files1 = self._read_in_plist()
+
+        subset.compute_subset(self.config, ["rootpkg:run,doc,src,bin"], None, self.sess)
+        files2 = self._read_in_plist()
+
+        # Since we *did* supply an arch we should see binfiles here
+        assert files1 == files2
+
 
 # XXX:
 # test multiple include/exclude
-# test explicit everything 'run,src,doc,bin'
-# Test error cases
