@@ -18,7 +18,7 @@ longdesc pkg_1 desc line 2
 runfiles size=66
  runfiles/runfile1
  runfiles/runfile2
- runfiles/runfile3
+ runfiles/runfile3 details="sometimes this happens"
 docfiles size=77
  docfiles/docfile1
  docfiles/docfile2

@@ -1,15 +1,12 @@
-import os.path, pytest, sys
+import pytest, sys, os.path
+from helper import AbstractTest, DIRPATH
 
-MYPATH = os.path.abspath(__file__)
-DIRPATH = os.path.dirname(MYPATH)
-
-sys.path.append(os.path.join(DIRPATH, ".."))
 from texscythe.orm import File, Package
-from texscythe import tlpdbparser, subset
+from texscythe import subset
 
-class Test_Basic(object):
+class Test_Basic(AbstractTest):
 
-    def setup_class(self):
+    def setup_method(self, method):
         self.config = {
             "sqldb"             : os.path.join(DIRPATH, "basic.db"),
             "plist"             : os.path.join(DIRPATH, "PLIST-basic"),
@@ -18,18 +15,7 @@ class Test_Basic(object):
             "arch"              : None,
         }
 
-        self.sess = tlpdbparser.initdb(self.config, return_sess=True)
-
-    def teardown_class(self):
-        self.sess.close()
-        os.unlink(self.config["sqldb"])
-        os.unlink(self.config["plist"])
-
-    def _read_in_plist(self):
-        """ returns a list of filenames (sorted) """
-        with open(self.config["plist"], "r") as f:
-            lines = f.read()
-        return sorted([ x for x in lines.split("\n") if x != "" ])
+        super(Test_Basic, self).setup_method(method)
 
     def test_stats(self):
         assert self.sess.query(File).count() == 7
@@ -100,8 +86,27 @@ class Test_Basic(object):
 
         assert files == []
 
+class Test_BasicWithArch(AbstractTest):
+
+    def setup_method(self, method):
+        self.config = {
+            "sqldb"             : os.path.join(DIRPATH, "basic_arch.db"),
+            "plist"             : os.path.join(DIRPATH, "PLIST-basic_arch"),
+            "prefix_filenames"  : "",
+            "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
+            "arch"              : "amd64-linux",
+        }
+
+        super(Test_BasicWithArch, self).setup_method(method)
+
+    def test_plist_binfiles(self):
+        subset.compute_subset(self.config, ["rootpkg:bin"], None, self.sess)
+        files = self._read_in_plist()
+
+        # Since we *did* supply an arch we should see binfiles here
+        assert files == ['binfiles/binfile1']
+
 # XXX:
-# Test arch specific
 # Test "details ="
 # test multiple include/exclude
 # test explicit everything 'run,src,doc,bin'
