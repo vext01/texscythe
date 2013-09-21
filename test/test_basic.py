@@ -120,9 +120,34 @@ class Test_BasicWithArch(AbstractTest):
         subset.compute_subset(self.config, ["rootpkg:run,doc,src,bin"], None, self.sess)
         files2 = self._read_in_plist()
 
-        # Since we *did* supply an arch we should see binfiles here
         assert files1 == files2
 
+    def test_multiple_includes(self):
+        subset.compute_subset(self.config, ["rootpkg:run", "rootpkg:bin"], None, self.sess)
+        files1 = self._read_in_plist()
+
+        subset.compute_subset(self.config, ["rootpkg:run,bin"], None, self.sess)
+        files2 = self._read_in_plist()
+
+        assert files1 == files2
+
+    def test_multiple_includes2(self):
+        subset.compute_subset(self.config, ["rootpkg:run", "rootpkg:bin", "rootpkg:src", "rootpkg:doc"], None, self.sess)
+        files1 = self._read_in_plist()
+
+        subset.compute_subset(self.config, ["rootpkg"], None, self.sess)
+        files2 = self._read_in_plist()
+
+        assert files1 == files2
+
+    def test_multiple_excludes(self):
+        subset.compute_subset(self.config, ["rootpkg"], ["rootpkg:src", "rootpkg:doc", "rootpkg:bin"], self.sess)
+        files1 = self._read_in_plist()
+
+        subset.compute_subset(self.config, ["rootpkg:run"], None, self.sess)
+        files2 = self._read_in_plist()
+
+        assert files1 == files2
 
 # XXX:
 # test multiple include/exclude

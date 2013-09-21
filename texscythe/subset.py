@@ -82,13 +82,13 @@ def build_file_list(config, sess, pkg_tuples):
     # let's iteratively collect file lists from packages and accumulate them
     # in a set. This will remove duplicates as we go.
 
-    # Speed up file collection by noting which packages have already been
-    # processed. Seems to make a big performance difference at the cost
-    # of storing this large dict.
-    seen_packages = {}
-
     files = set()
     for (pkgname, filetypes) in pkg_tuples:
+        # Speed up file collection by noting which packages have already been
+        # processed. Seems to make a big performance difference at the cost
+        # of storing this large dict.
+        seen_packages = {}
+
         new_files = build_file_list_pkg(config, sess, pkgname, filetypes, seen_packages)
         feedback("Building file list", "done: %s:%s has %d files\n" % \
                 (pkgname, ",".join(filetypes), len(new_files)))
