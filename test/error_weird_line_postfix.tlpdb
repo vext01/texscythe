@@ -1,0 +1,13 @@
+name rootpkg
+category core
+revision 666
+shortdesc toplevel test package
+longdesc rootpkg desc line 1
+longdesc rootpkg desc line 2
+longdesc rootpkg desc line 3
+longdesc rootpkg desc line 4
+longdesc rootpkg desc line 5
+runfiles size=66
+ runfiles/runfile1 wtf="this is invalid"
+ runfiles/runfile2
+ runfiles/runfile3 details="details is valid however"
