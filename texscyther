@@ -28,11 +28,11 @@ Example usage:
 
   Initialise the database:
 
-      $ texscythe --initdb
+      $ texscyther --initdb
 
   Compute a subset with scheme-tetex excluding scheme-mininial's docfiles:
 
-      $ texscythe --subset -i scheme-tetex -x scheme-minimal:doc
+      $ texscyther --subset -i scheme-tetex -x scheme-minimal:doc
 """
 
 DESCR = "Compute subsets of the TeX Live texmf tree."
