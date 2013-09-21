@@ -16,7 +16,7 @@ import sys
 
 from orm import Package, Dependency, File, init_orm
 
-class SubsetError(Exception): pass
+class TeXSubsetError(Exception): pass
 
 BLANK = 80 * " "
 def feedback(action, message):
@@ -40,10 +40,10 @@ def parse_subset_spec(spec):
         for t in filetypes:
             if t == "": break # user passed "pkgname:"
             if t not in ["run", "src", "doc", "bin"]:
-                raise SubsetError("Unknown file type: '%s'" % (t, ))
+                raise TeXSubsetError("Unknown file type: '%s'" % (t, ))
         return (elems[0], filetypes)
     else:
-        raise SubsetError("Malformed pkgspec: '%s'" % (spec, ))
+        raise TeXSubsetError("Malformed pkgspec: '%s'" % (spec, ))
 
 def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
     # argparse gives None if switch is absent
@@ -119,8 +119,7 @@ def build_file_list_pkg(config, sess, pkgname, filetypes, seen_packages):
     try:
         pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
     except:
-        sys.stderr.write("\nERROR: Could not find package '%s'\n" % pkgname)
-        sys.exit(1)
+        raise TeXSubsetError("Nonexistent TeX package: '%s'" % pkgname)
 
     # add files
     files = set()

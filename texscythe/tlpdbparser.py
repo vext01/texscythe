@@ -41,7 +41,10 @@ class ParserState(object):
         self.num_pkgs_parsed = 0
 
 def fieldname_and_data(s):
-    space = s.index(" ")
+    try:
+        space = s.index(" ")
+    except:
+        raise TeXParseError("Malformed line, no space: '%s'" % s)
     return (s[0:space], s[space + 1:])
 
 def user_feedback(s):

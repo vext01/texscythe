@@ -3,6 +3,8 @@ from helper import AbstractTest, DIRPATH
 
 from texscythe.orm import File, Package
 from texscythe import subset, tlpdbparser
+from texscythe.subset import TeXSubsetError
+from texscythe.tlpdbparser import TeXParseError
 
 class Test_Errors(object):
     """ Test a bunch of parser errors """
@@ -18,8 +20,6 @@ class Test_Errors(object):
         self.sess = tlpdbparser.initdb(self.config, return_sess=True)
 
     def teardown_method(self, method):
-        # these shouldn't be needed as all tlpdbs have errors.
-        # clean up incase a test does not expectedly fail
         try:
             os.unlink(self.config["sqldb"])
         except:
@@ -35,10 +35,12 @@ class Test_Errors(object):
         except:
             pass
 
-    @pytest.mark.xfail
     def test_weird_line_postfix(self):
-        self.parse_file("weird_line_postfix")
+        pytest.raises(TeXParseError, 'self.parse_file("weird_line_postfix")')
 
-    @pytest.mark.xfail
     def test_files_not_indented(self):
-        self.parse_file("files_not_indented")
+        pytest.raises(TeXParseError, 'self.parse_file("files_not_indented")')
+
+    def test_nonexistent_dep(self):
+        self.parse_file("nonexistent_dep")
+        pytest.raises(TeXSubsetError, 'subset.compute_subset(self.config, ["rootpkg"], None, self.sess)')

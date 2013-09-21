@@ -107,7 +107,6 @@ class Test_BasicWithArch(AbstractTest):
         assert files == ['binfiles/binfile1']
 
 # XXX:
-# Test "details ="
 # test multiple include/exclude
 # test explicit everything 'run,src,doc,bin'
 # Test error cases
