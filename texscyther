@@ -62,7 +62,7 @@ if __name__ == "__main__":
             help="exclude package in subset")
     parser.add_argument("--version", action='store_true',
             help="show version")
-    parser.add_argument("-P", "--prefix_filenames",
+    parser.add_argument("-p", "--prefix_filenames",
             help="prefix string to filenames")
     parser.add_argument("-o", "--output-plist",
             help="output filename")
