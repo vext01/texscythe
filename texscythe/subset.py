@@ -12,7 +12,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import sys
+import sys, os.path
 
 from orm import Package, Dependency, File, init_orm
 
@@ -65,6 +65,13 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
     sys.stderr.write("Performing subtract... ")
     subset = include_files - exclude_files
     sys.stderr.write("Done\n")
+
+    if config["dirs"]:
+        sys.stderr.write("Adding directory lines...")
+        dirs = set()
+        for line in subset: dirs |= set([os.path.dirname(line) + "/"])
+        subset |= dirs
+        sys.stderr.write("Done\n")
 
     sys.stderr.write("Sorting... ")
     subset = sorted(subset)

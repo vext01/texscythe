@@ -70,6 +70,8 @@ if __name__ == "__main__":
             help="path to texive.tlpdb")
     parser.add_argument("-d", "--sqldb",
             help="path to sqlite3 database")
+    parser.add_argument("-D", "--nodirs", action='store_true',
+            help="do not add directory entries in packing lists")
     parser.add_argument("-a", "--arch",
             help="cpu architecure, e.g. 'alpha-linux' "
             "(if not set, ARCH pkgs ignored)")
@@ -90,6 +92,7 @@ if __name__ == "__main__":
             "prefix_filenames"  : "",
             "tlpdb"             : "texlive.tlpdb",
             "arch"              : None,
+            "dirs"              : True,
     }
 
     if args.sqldb is not None:
@@ -102,6 +105,8 @@ if __name__ == "__main__":
         config["tlpdb"] = args.tlpdb
     if args.arch is not None:
         config["arch"] = args.arch
+    if args.nodirs:
+        config["dirs"] = False
 
     if not args.version:
         print_version()

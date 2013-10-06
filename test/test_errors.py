@@ -16,6 +16,7 @@ class Test_Errors(object):
             "prefix_filenames"  : "",
             "tlpdb"             : os.path.join(DIRPATH, tlpdb + ".tlpdb"),
             "arch"              : None,
+            "dirs"              : False,
         }
         self.sess = tlpdbparser.initdb(self.config, return_sess=True)
 

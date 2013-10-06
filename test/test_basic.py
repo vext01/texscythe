@@ -13,6 +13,7 @@ class Test_Basic(AbstractTest):
             "prefix_filenames"  : "",
             "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
             "arch"              : None,
+            "dirs"              : False
         }
 
         super(Test_Basic, self).setup_method(method)
@@ -102,6 +103,7 @@ class Test_BasicWithArch(AbstractTest):
             "prefix_filenames"  : "",
             "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
             "arch"              : "amd64-linux",
+            "dirs"              : False,
         }
 
         super(Test_BasicWithArch, self).setup_method(method)
@@ -148,3 +150,36 @@ class Test_BasicWithArch(AbstractTest):
         files2 = self._read_in_plist()
 
         assert files1 == files2
+
+class Test_Dirs(AbstractTest):
+
+    def setup_method(self, method):
+        self.config = {
+            "sqldb"             : os.path.join(DIRPATH, "basic.db"),
+            "plist"             : os.path.join(DIRPATH, "PLIST-basic"),
+            "prefix_filenames"  : "",
+            "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
+            "arch"              : None,
+            "dirs"              : True,
+        }
+
+        super(Test_Dirs, self).setup_method(method)
+
+    def test_dirs(self):
+        subset.compute_subset(self.config, ["rootpkg"], None, self.sess)
+        files = self._read_in_plist()
+
+        expected = sorted([ "runfiles/runfile%d" % x for x in range(1, 4) ] + \
+            [ "docfiles/docfile%d" % x for x in range(1, 3) ] + \
+            [ "srcfiles/srcfile1" ] + [ "runfiles/", "docfiles/", "srcfiles/"])
+
+        assert files == expected
+
+    def test_dirs2(self):
+        subset.compute_subset(self.config, ["rootpkg:run"], None, self.sess)
+        files = self._read_in_plist()
+
+        expected = sorted([ "runfiles/runfile%d" % x for x in range(1, 4) ] +
+            [ "runfiles/"])
+
+        assert files == expected
