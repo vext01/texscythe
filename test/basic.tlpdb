@@ -31,3 +31,12 @@ longdesc pkg_2 desc line 1
 longdesc pkg_2 desc line 2
 binfiles arch=amd64-linux size=89
  binfiles/binfile1
+
+name no_root_dirs_pkg
+shortdesc test root dir not included
+longdesc pkg desc line 1
+longdesc pkg desc line 2
+runfiles size=23
+ file1
+ file2
+ file3

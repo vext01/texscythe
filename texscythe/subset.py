@@ -69,7 +69,11 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
     if config["dirs"]:
         sys.stderr.write("Adding directory lines...")
         dirs = set()
-        for line in subset: dirs |= set([os.path.dirname(line) + "/"])
+        for line in subset:
+            dn = os.path.dirname(line)
+            if dn == '': continue
+            dirs |= set([os.path.join(dn, "")])
+
         subset |= dirs
         sys.stderr.write("Done\n")
 
