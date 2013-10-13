@@ -14,10 +14,12 @@ class Test_TeXLive(AbstractTest):
             "prefix_filenames"  : "",
             "tlpdb"             : os.path.join(DIRPATH, "..", "texlive2013.tlpdb.gz"),
             "arch"              : None,
+            "dirs"              : False
         }
 
         super(Test_TeXLive, self).setup_method(method)
 
+    @pytest.mark.slow
     def test_superficial(self):
         # numbers determined independently by grep
         assert self.sess.query(Package).count() == 5599

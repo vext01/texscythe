@@ -66,13 +66,24 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
     subset = include_files - exclude_files
     sys.stderr.write("Done\n")
 
+    def get_required_dirs(path):
+        print("getting dirs:", path)
+        dirs = []
+        while path != "":
+            path = os.path.dirname(path)
+            if path != "": dirs.append(path + os.path.sep)
+
+        print("path: %s    dirs: %s\n" % (path, dirs))
+        return dirs
+
     if config["dirs"]:
         sys.stderr.write("Adding directory lines...")
         dirs = set()
         for line in subset:
-            dn = os.path.dirname(line)
-            if dn == '': continue
-            dirs |= set([os.path.join(dn, "")])
+            print(line)
+            #dn = os.path.dirname(line)
+            #if dn == '': continue
+            dirs |= set(get_required_dirs(line))
 
         subset |= dirs
         sys.stderr.write("Done\n")

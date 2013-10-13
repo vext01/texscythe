@@ -40,3 +40,10 @@ runfiles size=23
  file1
  file2
  file3
+
+name intermediate_dirs_pkg
+shortdesc test intermediate dirs are created properly
+longdesc pkg desc line 1
+longdesc pkg desc line 2
+runfiles size=23
+ a/b/c/file1

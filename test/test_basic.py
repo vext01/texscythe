@@ -19,8 +19,8 @@ class Test_Basic(AbstractTest):
         super(Test_Basic, self).setup_method(method)
 
     def test_stats(self):
-        assert self.sess.query(File).count() == 10 
-        assert self.sess.query(Package).count() == 4
+        assert self.sess.query(File).count() == 11
+        assert self.sess.query(Package).count() == 5
 
     def test_plist(self):
         subset.compute_subset(self.config, ["rootpkg"], None, self.sess)
@@ -184,9 +184,17 @@ class Test_Dirs(AbstractTest):
 
         assert files == expected
 
-    def test_dirs2(self):
+    def test_dirs3(self):
         subset.compute_subset(self.config, ["no_root_dirs_pkg:run"], None, self.sess)
         files = self._read_in_plist()
 
         expected = sorted([ "file1", "file2", "file3" ]) # no root dir entry
+        assert files == expected
+
+    def test_dirs4(self):
+        subset.compute_subset(self.config, ["intermediate_dirs_pkg:run"], None, self.sess)
+        files = self._read_in_plist()
+
+        # should make intermediate dirs
+        expected = sorted([ "a/", "a/b/", "a/b/c/", "a/b/c/file1" ])
         assert files == expected
