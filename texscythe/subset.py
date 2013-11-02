@@ -12,11 +12,21 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import sys, os.path
+import sys, os.path, re
 
 from orm import Package, Dependency, File, init_orm
 
 class TeXSubsetError(Exception): pass
+
+class FileSpec(object):
+    def __init__(self, pkgname, filetypes, regex=None):
+        self.pkgname = pkgname
+        self.filetypes = filetypes
+        self.regex = regex
+
+    def __str__(self):
+        return "FileSpec: pkgname='%s', filetypes=%s, regex=%s" % \
+                (self.pkgname, self.filetypes, self.regex)
 
 BLANK = 80 * " "
 def feedback(action, message):
@@ -32,18 +42,32 @@ def parse_subset_spec(spec):
         returns a tuple, (name, list_of_filetypes)
     """
 
-    elems = spec.split(":")
-    if len(elems) == 1:
-        return (elems[0], ["run", "src", "doc", "bin"])
-    elif len(elems) == 2:
-        filetypes = elems[1].split(",")
+    elems = spec.split(":", 2)
+
+    if len(elems) not in range(1, 4):
+        raise TeXSubsetError("Bad filesepc: '%s'" % spec)
+
+    # pad the elements up to 3 length and unpack
+    elems = elems + [ "" for x in range(3 - len(elems)) ]
+
+    (pkgname, filetypes, regex) = elems
+
+    # parse file types
+    if filetypes == "":
+        filetypes = ["run", "src", "doc", "bin"] # all types
+    else:
+        filetypes = filetypes.split(",")
         for t in filetypes:
-            if t == "": break # user passed "pkgname:"
             if t not in ["run", "src", "doc", "bin"]:
                 raise TeXSubsetError("Unknown file type: '%s'" % (t, ))
-        return (elems[0], filetypes)
+
+    # parse regex
+    if regex == "":
+        regex = None
     else:
-        raise TeXSubsetError("Malformed pkgspec: '%s'" % (spec, ))
+        regex = re.compile(regex)
+
+    return FileSpec(pkgname, filetypes, regex)
 
 def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
     # argparse gives None if switch is absent
@@ -51,16 +75,16 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
     if exclude_pkgspecs is None: exclude_pkgspecs = []
 
     # parse the pkgspecs
-    include_tuples = [ parse_subset_spec(s) for s in include_pkgspecs ]
-    exclude_tuples = [ parse_subset_spec(s) for s in exclude_pkgspecs ]
+    include_specs = [ parse_subset_spec(s) for s in include_pkgspecs ]
+    exclude_specs = [ parse_subset_spec(s) for s in exclude_pkgspecs ]
 
     if sess is None:
         (sess, engine) = init_orm(config["sqldb"])
 
     sys.stderr.write("Collecting include files:\n")
-    include_files = build_file_list(config, sess, include_tuples)
+    include_files = build_file_list(config, sess, include_specs)
     sys.stderr.write("Collecting exclude files:\n")
-    exclude_files = build_file_list(config, sess, exclude_tuples)
+    exclude_files = build_file_list(config, sess, exclude_specs)
 
     sys.stderr.write("Performing subtract... ")
     subset = include_files - exclude_files
@@ -92,26 +116,27 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
 
     sys.stderr.write("Done\n")
 
-def build_file_list(config, sess, pkg_tuples):
+def build_file_list(config, sess, filespecs):
     # we have to be careful how we do this to not explode the memory.
     # let's iteratively collect file lists from packages and accumulate them
     # in a set. This will remove duplicates as we go.
 
     files = set()
-    for (pkgname, filetypes) in pkg_tuples:
+    for spec in filespecs:
         # Speed up file collection by noting which packages have already been
         # processed. Seems to make a big performance difference at the cost
         # of storing this large dict.
         seen_packages = {}
 
-        new_files = build_file_list_pkg(config, sess, pkgname, filetypes, seen_packages)
+        new_files = build_file_list_pkg(config, sess, spec, seen_packages)
         feedback("Building file list", "done: %s:%s has %d files\n" % \
-                (pkgname, ",".join(filetypes), len(new_files)))
+                (spec.pkgname, ",".join(spec.filetypes), len(new_files)))
         files |= new_files
 
     return files
 
-def build_file_list_pkg(config, sess, pkgname, filetypes, seen_packages):
+def build_file_list_pkg(config, sess, filespec, seen_packages):
+    pkgname = filespec.pkgname
     feedback("Building file list", pkgname)
 
     if "ARCH" in pkgname:
@@ -138,13 +163,23 @@ def build_file_list_pkg(config, sess, pkgname, filetypes, seen_packages):
 
     # add files
     files = set()
-    for filetype in filetypes:
+    for filetype in filespec.filetypes:
+        # Note that in the DB filetype is just the first letter. If in the
+        # future two filetypes of the same first letter arise, refactor.
         files |= set([ f.filename for f in \
                 pkg.files.filter(File.filetype == filetype[0]).all() ])
 
-    # process deps and union with the above files.
+    # filter based upon regex
+    if filespec.regex is not None:
+        files = set([ f for f in files if filespec.regex.match(f) ])
+
+    # Process deps and union with the above files.
+    # Pass down a new FileSpec that inherits filetypes and regex from the
+    # current filespec.
     for dep in pkg.dependencies:
-        files |= build_file_list_pkg(config, sess, dep.needs, filetypes, seen_packages)
+        files |= build_file_list_pkg(config, sess,
+                FileSpec(dep.needs, filespec.filetypes, filespec.regex),
+                seen_packages)
 
     # return them
     return files

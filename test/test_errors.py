@@ -55,8 +55,3 @@ class Test_Errors(object):
         # now ask for a class of file which is bogus, in this case 'fartfiles'
         pytest.raises(TeXSubsetError,
             'subset.compute_subset(self.config, ["rootpkg:fart"], None, self.sess)')
-
-    def test_malformed_pkgspec(self):
-        self.parse_file("basic") # should work
-        pytest.raises(TeXSubsetError,
-            'subset.compute_subset(self.config, ["rootpkg:doc:ouch"], None, self.sess)')
