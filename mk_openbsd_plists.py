@@ -1,0 +1,88 @@
+#!/usr/bin/env python2.7
+import os, sys
+
+class NastyError(Exception): pass
+
+# This is how we detect manual pages
+MAN_REGEX="texmf-dist\/doc\/man\/man1\/.*[0-9]$"
+
+def run_texscyther(inc_specs, exc_specs, plist):
+    if inc_specs:
+        inc_specs = "-i " + " ".join(inc_specs)
+    else:
+        inc_specs = ""
+
+    if exc_specs:
+        exc_specs = "-x " + " ".join(exc_specs)
+    else:
+        exc_specs = ""
+
+    cmd = "%s texscyther --subset %s %s -o %s" % (
+        sys.executable, inc_specs, exc_specs, plist
+        )
+    print ("Running: %s" % cmd)
+    if os.system(cmd) != 0:
+        raise NastyError("texscyther failed")
+
+# Collect runfiles and manuals of a packages
+def runs_and_mans_single(pkg):
+    return [("{0}:run".format(pkg)), "{0}:doc:{1}".format(pkg, MAN_REGEX)]
+
+# Collect runfiles and manuals of a list of packages
+def runs_and_mans(pkglist):
+    specs = []
+    for pkg in pkglist:
+        specs.extend(runs_and_mans_single(pkg))
+    return specs
+
+# /-------------------------------------
+# | BUILDSET
+# +-------------------------------------
+# | A minimal subset for building ports.
+# \-------------------------------------
+buildset_pkgs = [
+	"scheme-basic",
+	# dblatex
+    "anysize", "appendix", "changebar",
+    "fancyvrb", "float", "footmisc",
+    "jknapltx", "multirow", "overpic",
+    "rotating", "stmaryrd", "subfigure",
+    "fancybox", "listings", "pdfpages",
+    "titlesec", "wasysym",
+    # gnustep/dbuskit, graphics/asymptote
+    "texinfo",
+    # gnusetp/dbuskit
+    "ec",
+    # graphics/asymptote
+    "epsf", "parskip",
+    # gnusetp/dbuskit, graphics/asymptote
+    "cm-super",
+    # lang/ghc,-docs
+    "zapfding", "symbol", "url", "eepic", "courier",
+    "times", "helvetic", "rsfs",
+    # devel/darcs
+    "preprint",
+    ]
+
+print(">>> texlive_texmf-buildset")
+buildset_specs = runs_and_mans(buildset_pkgs)
+run_texscyther(buildset_specs, [], "PLIST-buildset")
+
+# /----------------------------------------------------------
+# | MINIMAL
+# +----------------------------------------------------------
+# | Scheme-tetex minus anything we installed in the buildset
+# \----------------------------------------------------------
+
+print(">>> texlive_texmf-minimal")
+minimal_specs = runs_and_mans(["scheme-tetex"])
+run_texscyther(minimal_specs, buildset_specs, "PLIST-minimal")
+
+
+print(">>> texlive_texmf-full")
+full_specs = runs_and_mans(["scheme-full"])
+run_texscyther(full_specs, minimal_specs, "PLIST-full")
+
+# XXX exclude dumb pdf manuals
+print(">>> texlive_texmf-docs")
+run_texscyther(["scheme-full:doc"], ["scheme-full:doc:%s" % MAN_REGEX], "PLIST-doc")
