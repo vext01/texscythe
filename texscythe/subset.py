@@ -129,8 +129,10 @@ def build_file_list(config, sess, filespecs):
         seen_packages = {}
 
         new_files = build_file_list_pkg(config, sess, spec, seen_packages)
-        feedback("Building file list", "done: %s:%s has %d files\n" % \
-                (spec.pkgname, ",".join(spec.filetypes), len(new_files)))
+
+        rpattern = ":" + spec.regex.pattern if spec.regex is not None else ""
+        feedback("Building file list", "done: %s:%s%s has %d files\n" % \
+                (spec.pkgname, ",".join(spec.filetypes), rpattern, len(new_files)))
         files |= new_files
 
     return files
