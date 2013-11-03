@@ -1,4 +1,10 @@
 #!/usr/bin/env python2.7
+#
+# This is how we generate (a basis for) the OpenBSD packing lists for TeX Live.
+#
+# Note that the script does duplicate work. Future work should try to avoid
+# this, but since the script doesn't take an age to run, this is fine for now.
+
 import os, sys
 
 class NastyError(Exception): pass
