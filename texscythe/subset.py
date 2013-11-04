@@ -38,6 +38,7 @@ def parse_subset_spec(spec):
         scheme-tetex
         scheme-tetex:src
         scheme-tetex:src,run,doc
+        scheme-tetex:src,run,doc:.*\.pdf
 
         returns a tuple, (name, list_of_filetypes)
     """
