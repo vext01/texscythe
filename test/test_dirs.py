@@ -14,6 +14,7 @@ class Test_Dirs(AbstractTest):
             "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
             "arch"              : None,
             "dirs"              : True,
+            "regex"             : None,
         }
 
         super(Test_Dirs, self).setup_method(method)

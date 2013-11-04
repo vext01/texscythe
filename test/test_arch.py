@@ -14,6 +14,7 @@ class Test_BasicWithArch(AbstractTest):
             "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
             "arch"              : "amd64-linux",
             "dirs"              : False,
+            "regex"             : None,
         }
 
         super(Test_BasicWithArch, self).setup_method(method)

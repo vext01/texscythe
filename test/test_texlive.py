@@ -14,7 +14,8 @@ class Test_TeXLive(AbstractTest):
             "prefix_filenames"  : "",
             "tlpdb"             : os.path.join(DIRPATH, "..", "texlive2013.tlpdb.gz"),
             "arch"              : None,
-            "dirs"              : False
+            "dirs"              : False,
+            "regex"             : None,
         }
 
         super(Test_TeXLive, self).setup_method(method)

@@ -13,7 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import argparse
+import argparse, re
 
 VERSION=0.1
 
@@ -75,6 +75,8 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--arch",
             help="cpu architecure, e.g. 'alpha-linux' "
             "(if not set, ARCH pkgs ignored)")
+    parser.add_argument("-r", "--regex",
+            help="filter final file list by regex before writing out")
 
     args = parser.parse_args()
 
@@ -93,6 +95,7 @@ if __name__ == "__main__":
             "tlpdb"             : "texlive.tlpdb",
             "arch"              : None,
             "dirs"              : True,
+            "regex"             : None
     }
 
     if args.sqldb is not None:
@@ -107,6 +110,8 @@ if __name__ == "__main__":
         config["arch"] = args.arch
     if args.nodirs:
         config["dirs"] = False
+    if args.regex is not None:
+        config["regex"] = args.regex
 
     if not args.version:
         print_version()

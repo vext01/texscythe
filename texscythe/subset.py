@@ -109,10 +109,22 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
     subset = sorted(subset)
     sys.stderr.write("Done\n")
 
-    sys.stderr.write("Writing %d filenames to '%s'... " % (len(subset), config["plist"]))
-
-    with open(config["plist"], "w") as fh:
-        for fl in subset: fh.write("%s%s\n" % (config["prefix_filenames"], fl))
+    # Filter global regex.
+    # Quicker to check once and duplicate code
+    if config["regex"] is None: # no filter needed
+        sys.stderr.write("Writing %d filenames to '%s'... " % 
+            (len(subset), config["plist"]))
+        with open(config["plist"], "w") as fh:
+            for fl in subset:
+                fh.write("%s%s\n" % (config["prefix_filenames"], fl))
+    else:
+        sys.stderr.write("Filtering %d filenames to '%s'... " % 
+            (len(subset), config["plist"]))
+        rgx = re.compile(config["regex"])
+        with open(config["plist"], "w") as fh:
+            for fl in subset:
+                if rgx.match(fl): 
+                    fh.write("%s%s\n" % (config["prefix_filenames"], fl))
 
     sys.stderr.write("Done\n")
 

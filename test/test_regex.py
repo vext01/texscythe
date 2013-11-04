@@ -13,7 +13,8 @@ class Test_Regex(AbstractTest):
             "prefix_filenames"  : "",
             "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
             "arch"              : None,
-            "dirs"              : False
+            "dirs"              : False,
+            "regex"             : None,
         }
         super(Test_Regex, self).setup_method(method)
 
@@ -65,3 +66,23 @@ class Test_Regex(AbstractTest):
         files = self._read_in_plist()
 
         assert files == sorted(["runfiles/runfile1", "runfiles/runfile3", "docfiles/docfile1"])
+
+class Test_GlobalRegex(AbstractTest):
+
+    def setup_method(self, method):
+        self.config = {
+            "sqldb"             : os.path.join(DIRPATH, "basic.db"),
+            "plist"             : os.path.join(DIRPATH, "PLIST-basic"),
+            "prefix_filenames"  : "",
+            "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
+            "arch"              : None,
+            "dirs"              : False,
+            "regex"             : ".*runfile[13]$",
+        }
+        super(Test_GlobalRegex, self).setup_method(method)
+
+    def test_regex(self):
+        subset.compute_subset(self.config, ["rootpkg:run"], None, self.sess)
+        files = self._read_in_plist()
+
+        assert files == sorted(["runfiles/runfile1", "runfiles/runfile3"])

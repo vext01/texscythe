@@ -13,7 +13,8 @@ class Test_Basic(AbstractTest):
             "prefix_filenames"  : "",
             "tlpdb"             : os.path.join(DIRPATH, "basic.tlpdb"),
             "arch"              : None,
-            "dirs"              : False
+            "dirs"              : False,
+            "regex"             : None,
         }
 
         super(Test_Basic, self).setup_method(method)
