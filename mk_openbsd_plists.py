@@ -101,7 +101,7 @@ full_specs = runs_and_mans(["scheme-full"])
 run_texscyther(full_specs, minimal_specs, "PLIST-full")
 
 # /----------------------------------------------------------
-# | FULL
+# | DOCS
 # +----------------------------------------------------------
 # | All remaining docs
 # \----------------------------------------------------------
