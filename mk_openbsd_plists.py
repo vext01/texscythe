@@ -5,6 +5,8 @@
 import os, sys, sh
 from texscythe import config, subset
 
+class NastyError(Exception): pass
+
 def do_subset(**kwargs):
     cfg = config.Config(**kwargs)
     subset.compute_subset(cfg)
@@ -63,7 +65,6 @@ do_subset(inc_pkgspecs=buildset_specs, plist="PLIST-buildset")
 print(">>> texlive_texmf-minimal")
 minimal_pkgs = ["scheme-tetex"]
 minimal_specs = runs_and_mans(minimal_pkgs)
-#run_texscyther(minimal_specs, buildset_pkgs, "PLIST-minimal")
 do_subset(
         inc_pkgspecs=minimal_specs,
         exc_pkgspecs=buildset_pkgs,
@@ -79,7 +80,6 @@ do_subset(
 print(">>> texlive_texmf-full")
 full_pkgs = ["scheme-full"]
 full_specs = runs_and_mans(full_pkgs)
-#run_texscyther(full_specs, minimal_pkgs + buildset_pkgs, "PLIST-full")
 do_subset(
         inc_pkgspecs=full_specs,
         exc_pkgspecs=minimal_pkgs + buildset_pkgs,
@@ -97,7 +97,6 @@ MAN_PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/(.*[0-9]|.*.man[0-9].pdf)$)
 
 print(">>> texlive_texmf-docs")
 doc_specs=["scheme-full:doc"]
-#run_texscyther(["scheme-full:doc"], [], "PLIST-doc", MAN_PDFMAN_REGEX)
 do_subset(
         inc_pkgspecs=doc_specs,
         plist="PLIST-doc",
@@ -133,7 +132,6 @@ for (l1, l2) in [ (x, y) for x in all_plists for y in all_plists if x < y ]:
 print("Check everything included")
 PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/.*.man[0-9].pdf$)"
 sanity_specs = ["scheme-full:run,doc"]
-#run_texscyther(["scheme-full:run,doc"], [], "PLIST-sanitycheck", PDFMAN_REGEX)
 do_subset(
         inc_pkgspecs=sanity_specs,
         plist="PLIST-sanitycheck",
