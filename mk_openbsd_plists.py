@@ -1,36 +1,13 @@
 #!/usr/bin/env python2.7
 #
 # This is how we generate (a basis for) the OpenBSD packing lists for TeX Live.
-#
-# Note that the script does duplicate work. Future work should try to avoid
-# this, but since the script doesn't take an age to run, this is fine for now.
 
 import os, sys, sh
+from texscythe import config, subset
 
-class NastyError(Exception): pass
-
-def run_texscyther(inc_specs, exc_specs, plist, global_re=""):
-    if inc_specs:
-        inc_specs = [ "'%s'" % x for x in inc_specs ]
-        inc_specs = "-i " + " ".join(inc_specs)
-    else:
-        inc_specs = ""
-
-    if exc_specs:
-        exc_specs = [ "'%s'" % x for x in exc_specs ]
-        exc_specs = "-x " + " ".join(exc_specs)
-    else:
-        exc_specs = ""
-
-    if global_re != "":
-        global_re = "-r '%s'" % global_re
-
-    cmd = "%s texscyther --subset %s %s -o %s %s" % (
-        sys.executable, inc_specs, exc_specs, plist, global_re
-        )
-    print ("Running: %s" % cmd)
-    if os.system(cmd) != 0:
-        raise NastyError("texscyther failed")
+def do_subset(**kwargs):
+    cfg = config.Config(**kwargs)
+    subset.compute_subset(cfg)
 
 # Collect runfiles and manuals of a packages
 MAN_REGEX="texmf-dist\/doc\/man\/man[0-9]\/.*[0-9]$"
@@ -75,7 +52,7 @@ buildset_pkgs = [
 
 print(">>> texlive_texmf-buildset")
 buildset_specs = runs_and_mans(buildset_pkgs)
-run_texscyther(buildset_specs, [], "PLIST-buildset")
+do_subset(inc_pkgspecs=buildset_specs, plist="PLIST-buildset")
 
 # /----------------------------------------------------------
 # | MINIMAL
@@ -86,7 +63,12 @@ run_texscyther(buildset_specs, [], "PLIST-buildset")
 print(">>> texlive_texmf-minimal")
 minimal_pkgs = ["scheme-tetex"]
 minimal_specs = runs_and_mans(minimal_pkgs)
-run_texscyther(minimal_specs, buildset_pkgs, "PLIST-minimal")
+#run_texscyther(minimal_specs, buildset_pkgs, "PLIST-minimal")
+do_subset(
+        inc_pkgspecs=minimal_specs,
+        exc_pkgspecs=buildset_pkgs,
+        plist="PLIST-minimal"
+        )
 
 # /----------------------------------------------------------
 # | FULL
@@ -97,7 +79,12 @@ run_texscyther(minimal_specs, buildset_pkgs, "PLIST-minimal")
 print(">>> texlive_texmf-full")
 full_pkgs = ["scheme-full"]
 full_specs = runs_and_mans(full_pkgs)
-run_texscyther(full_specs, minimal_pkgs + buildset_pkgs, "PLIST-full")
+#run_texscyther(full_specs, minimal_pkgs + buildset_pkgs, "PLIST-full")
+do_subset(
+        inc_pkgspecs=full_specs,
+        exc_pkgspecs=minimal_pkgs + buildset_pkgs,
+        plist="PLIST-full"
+        )
 
 # /----------------------------------------------------------
 # | DOCS
@@ -109,7 +96,13 @@ run_texscyther(full_specs, minimal_pkgs + buildset_pkgs, "PLIST-full")
 MAN_PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/(.*[0-9]|.*.man[0-9].pdf)$)"
 
 print(">>> texlive_texmf-docs")
-run_texscyther(["scheme-full:doc"], [], "PLIST-doc", MAN_PDFMAN_REGEX)
+doc_specs=["scheme-full:doc"]
+#run_texscyther(["scheme-full:doc"], [], "PLIST-doc", MAN_PDFMAN_REGEX)
+do_subset(
+        inc_pkgspecs=doc_specs,
+        plist="PLIST-doc",
+        regex=MAN_PDFMAN_REGEX
+        )
 
 # /----------------------------------------------------------
 # | SANITY CHECKING
@@ -139,7 +132,13 @@ for (l1, l2) in [ (x, y) for x in all_plists for y in all_plists if x < y ]:
 # Check the concatenation of the above plists is what we expect
 print("Check everything included")
 PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/.*.man[0-9].pdf$)"
-run_texscyther(["scheme-full:run,doc"], [], "PLIST-sanitycheck", PDFMAN_REGEX)
+sanity_specs = ["scheme-full:run,doc"]
+#run_texscyther(["scheme-full:run,doc"], [], "PLIST-sanitycheck", PDFMAN_REGEX)
+do_subset(
+        inc_pkgspecs=sanity_specs,
+        plist="PLIST-sanitycheck",
+        regex=PDFMAN_REGEX
+        )
 
 sh.sort(sh.cat(*all_plists), _out="PLIST-sanitycheck-actual")
 #check_no_overlap("PLIST-sanitycheck", "PLIST-sanitycheck-actual")

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 # Copyright (c) 2013, Edd Barrett <edd@openbsd.org> <vext01@gmail.com>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -14,6 +14,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import argparse, re
+from texscythe import config
 
 VERSION=0.1
 
@@ -88,45 +89,51 @@ if __name__ == "__main__":
         parser.error("please select a single primary task.\n  one of: --initdb, --subset, --version")
 
     # setup configuration
-    config = {
-            "sqldb"             : "texscythe.db",
-            "plist"             : "PLIST",
-            "prefix_filenames"  : "",
-            "tlpdb"             : "texlive.tlpdb",
-            "arch"              : None,
-            "dirs"              : True,
-            "regex"             : None
-    }
+    #config = {
+    #        "sqldb"             : "texscythe.db",
+    #        "plist"             : "PLIST",
+    #        "prefix_filenames"  : "",
+    #        "tlpdb"             : "texlive.tlpdb",
+    #        "arch"              : None,
+    #        "dirs"              : True,
+    #        "regex"             : None
+    #}
 
+    # build kwargs for Config constructor
+    cfg_kws = {}
     if args.sqldb is not None:
-        config["sqldb"] = args.sqldb
+        cfg_kws["sqldb"] = args.sqldb
     if args.prefix_filenames is not None:
-        config["prefix_filenames"] = args.prefix_filenames
+        cfg_kws["prefix_filenames"] = args.prefix_filenames
     if args.output_plist is not None:
-        config["plist"] = args.output_plist
+        cfg_kws["plist"] = args.output_plist
     if args.tlpdb is not None:
-        config["tlpdb"] = args.tlpdb
+        cfg_kws["tlpdb"] = args.tlpdb
     if args.arch is not None:
-        config["arch"] = args.arch
+        cfg_kws["arch"] = args.arch
     if args.nodirs:
-        config["dirs"] = False
+        cfg_kws["dirs"] = False
     if args.regex is not None:
-        config["regex"] = args.regex
+        cfg_kws["regex"] = args.regex
+    if args.include is not None:
+        cfg_kws["inc_pkgs"] = args.include
+    if args.exclude is not None:
+        cfg_kws["exc_pkgs"] = args.exclude
+
+    cfg = config.Config(**cfg_kws)
 
     if not args.version:
         print_version()
-        print("\nRunning with configuration:")
-        for k in config.iterkeys():
-            print("    %s: %s" % (k.ljust(25), config[k]))
+        print(cfg)
         print("")
 
     # primary tasks
     if args.subset:
         from texscythe import subset
-        subset.compute_subset(config, args.include, args.exclude)
+        subset.compute_subset(cfg)
     elif args.initdb:
         from texscythe import tlpdbparser
-        tlpdbparser.initdb(config)
+        tlpdbparser.initdb(cfg)
     elif args.version:
         print_version()
     else:

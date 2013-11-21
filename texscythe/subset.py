@@ -70,22 +70,18 @@ def parse_subset_spec(spec):
 
     return FileSpec(pkgname, filetypes, regex)
 
-def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
-    # argparse gives None if switch is absent
-    if include_pkgspecs is None: include_pkgspecs = []
-    if exclude_pkgspecs is None: exclude_pkgspecs = []
-
+def compute_subset(cfg, sess = None):
     # parse the pkgspecs
-    include_specs = [ parse_subset_spec(s) for s in include_pkgspecs ]
-    exclude_specs = [ parse_subset_spec(s) for s in exclude_pkgspecs ]
+    include_specs = [ parse_subset_spec(s) for s in cfg.inc_pkgspecs ]
+    exclude_specs = [ parse_subset_spec(s) for s in cfg.exc_pkgspecs ]
 
     if sess is None:
-        (sess, engine) = init_orm(config["sqldb"])
+        (sess, engine) = init_orm(cfg.sqldb)
 
     sys.stderr.write("Collecting include files:\n")
-    include_files = build_file_list(config, sess, include_specs)
+    include_files = build_file_list(cfg, sess, include_specs)
     sys.stderr.write("Collecting exclude files:\n")
-    exclude_files = build_file_list(config, sess, exclude_specs)
+    exclude_files = build_file_list(cfg, sess, exclude_specs)
 
     sys.stderr.write("Performing subtract... ")
     subset = include_files - exclude_files
@@ -98,7 +94,7 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
             if path != "": dirs.append(path + os.path.sep)
         return dirs
 
-    if config["dirs"]:
+    if cfg.dirs:
         sys.stderr.write("Adding directory lines...")
         dirs = set()
         for line in subset: dirs |= set(get_required_dirs(line))
@@ -112,24 +108,24 @@ def compute_subset(config, include_pkgspecs, exclude_pkgspecs, sess = None):
 
     # Filter global regex.
     # Quicker to check once and duplicate code
-    if config["regex"] is None: # no filter needed
+    if cfg.regex is None: # no filter needed
         sys.stderr.write("Writing %d filenames to '%s'... " % 
-            (len(subset), config["plist"]))
-        with open(config["plist"], "w") as fh:
+            (len(subset), cfg.plist))
+        with open(cfg.plist, "w") as fh:
             for fl in subset:
-                fh.write("%s%s\n" % (config["prefix_filenames"], fl))
+                fh.write("%s%s\n" % (cfg.prefix_filenames, fl))
     else:
         sys.stderr.write("Filtering %d filenames to '%s'... " % 
-            (len(subset), config["plist"]))
-        rgx = re.compile(config["regex"])
-        with open(config["plist"], "w") as fh:
+            (len(subset), cfg.plist))
+        rgx = re.compile(cfg.regex)
+        with open(cfg.plist, "w") as fh:
             for fl in subset:
                 if rgx.match(fl): 
-                    fh.write("%s%s\n" % (config["prefix_filenames"], fl))
+                    fh.write("%s%s\n" % (cfg.prefix_filenames, fl))
 
     sys.stderr.write("Done\n")
 
-def build_file_list(config, sess, filespecs):
+def build_file_list(cfg, sess, filespecs):
     # we have to be careful how we do this to not explode the memory.
     # let's iteratively collect file lists from packages and accumulate them
     # in a set. This will remove duplicates as we go.
@@ -141,7 +137,7 @@ def build_file_list(config, sess, filespecs):
         # of storing this large dict.
         seen_packages = {}
 
-        new_files = build_file_list_pkg(config, sess, spec, seen_packages)
+        new_files = build_file_list_pkg(cfg, sess, spec, seen_packages)
 
         rpattern = ":" + spec.regex.pattern if spec.regex is not None else ""
         feedback("Building file list", "done: %s:%s%s has %d files\n" % \
@@ -150,17 +146,17 @@ def build_file_list(config, sess, filespecs):
 
     return files
 
-def build_file_list_pkg(config, sess, filespec, seen_packages):
+def build_file_list_pkg(cfg, sess, filespec, seen_packages):
     pkgname = filespec.pkgname
     feedback("Building file list", pkgname)
 
     if "ARCH" in pkgname:
         # If a cpu architecture was not sepcified, then binaries are ignored.
-        if config["arch"] is None:
+        if cfg.arch is None:
             return set()
         else:
             # substitute in arch name
-            pkgname = pkgname.replace("ARCH", config["arch"])
+            pkgname = pkgname.replace("ARCH", cfg.arch)
 
     try:
         seen_packages[pkgname]
@@ -192,7 +188,7 @@ def build_file_list_pkg(config, sess, filespec, seen_packages):
     # Pass down a new FileSpec that inherits filetypes and regex from the
     # current filespec.
     for dep in pkg.dependencies:
-        files |= build_file_list_pkg(config, sess,
+        files |= build_file_list_pkg(cfg, sess,
                 FileSpec(dep.needs, filespec.filetypes, filespec.regex),
                 seen_packages)
 

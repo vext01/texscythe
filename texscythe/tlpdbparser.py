@@ -200,16 +200,16 @@ def print_db_summary(sess):
     print("Files:        %8d" % sess.query(File).count())
     print("Dependencies: %8d" % sess.query(Dependency).count())
 
-def initdb(config, return_sess = False):
+def initdb(cfg, return_sess = False):
     # Since we will only ever use sqlite, we can do this
-    if os.path.exists(config["sqldb"]): os.unlink(config["sqldb"])
+    if os.path.exists(cfg.sqldb): os.unlink(cfg.sqldb)
 
     # Set up ORM
-    (sess, engine) = orm.init_orm(config["sqldb"])
+    (sess, engine) = orm.init_orm(cfg.sqldb)
     DeclarativeBase.metadata.create_all(engine)
 
     # Populate db
-    parse(sess, config["tlpdb"])
+    parse(sess, cfg.tlpdb)
     sess.commit()
 
     # Done
