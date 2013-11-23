@@ -78,14 +78,18 @@ def compute_subset(cfg, sess = None):
     if sess is None:
         (sess, engine) = init_orm(cfg.sqldb)
 
-    sys.stderr.write("Collecting include files:\n")
+    if not cfg.quiet:
+        sys.stderr.write("Collecting include files:\n")
     include_files = build_file_list(cfg, sess, include_specs)
-    sys.stderr.write("Collecting exclude files:\n")
+
+    if not cfg.quiet:
+        sys.stderr.write("Collecting exclude files:\n")
     exclude_files = build_file_list(cfg, sess, exclude_specs)
 
-    sys.stderr.write("Performing subtract... ")
+    if not cfg.quiet:
+        sys.stderr.write("Performing subtract... ")
     subset = include_files - exclude_files
-    sys.stderr.write("Done\n")
+    if not cfg.quiet: sys.stderr.write("Done\n")
 
     def get_required_dirs(path):
         dirs = []
@@ -95,35 +99,34 @@ def compute_subset(cfg, sess = None):
         return dirs
 
     if cfg.dirs:
-        sys.stderr.write("Adding directory lines...")
+        if not cfg.quiet: sys.stderr.write("Adding directory lines...")
         dirs = set()
         for line in subset: dirs |= set(get_required_dirs(line))
 
         subset |= dirs
-        sys.stderr.write("Done\n")
+        if not cfg.quiet: sys.stderr.write("Done\n")
 
-    sys.stderr.write("Sorting... ")
+    if not cfg.quiet: sys.stderr.write("Sorting... ")
     subset = sorted(subset)
-    sys.stderr.write("Done\n")
+    if not cfg.quiet: sys.stderr.write("Done\n")
 
-    # Filter global regex.
-    # Quicker to check once and duplicate code
-    if cfg.regex is None: # no filter needed
-        sys.stderr.write("Writing %d filenames to '%s'... " % 
-            (len(subset), cfg.plist))
+    # Apply global regex if there is one
+    if cfg.regex is not None:
+        if not cfg.quiet: sys.stderr.write("Applying global regex...")
+        rgx = re.compile(cfg.regex)
+        subset = set([ x for x in subset if rgx.match(x) ])
+        if not cfg.quiet: sys.stderr.write("Done\n")
+
+    if cfg.plist is not None:
+        # Write out to file
+        if not cfg.quiet:
+            sys.stderr.write("Writing file list to '%s'..." % cfg.plist)
         with open(cfg.plist, "w") as fh:
             for fl in subset:
                 fh.write("%s%s\n" % (cfg.prefix_filenames, fl))
+        if not cfg.quiet: sys.stderr.write("Done\n")
     else:
-        sys.stderr.write("Filtering %d filenames to '%s'... " % 
-            (len(subset), cfg.plist))
-        rgx = re.compile(cfg.regex)
-        with open(cfg.plist, "w") as fh:
-            for fl in subset:
-                if rgx.match(fl): 
-                    fh.write("%s%s\n" % (cfg.prefix_filenames, fl))
-
-    sys.stderr.write("Done\n")
+        return subset
 
 def build_file_list(cfg, sess, filespecs):
     # we have to be careful how we do this to not explode the memory.
@@ -132,24 +135,30 @@ def build_file_list(cfg, sess, filespecs):
 
     files = set()
     for spec in filespecs:
-        # Speed up file collection by noting which packages have already been
-        # processed. Seems to make a big performance difference at the cost
-        # of storing this large dict.
+        # Speed up file collection by noting which packages have
+        # already been processed. Seems to make a big performance
+        # difference at the cost # of storing this large dict.
         seen_packages = {}
 
         new_files = build_file_list_pkg(cfg, sess, spec, seen_packages)
 
-        rpattern = ":" + spec.regex.pattern if spec.regex is not None else ""
-        feedback("Building file list", "done: %s:%s%s has %d files\n" % \
-                (spec.pkgname, ",".join(spec.filetypes), rpattern, len(new_files)))
+        rpattern = ":" + spec.regex.pattern \
+            if spec.regex is not None else ""
+
+        if not cfg.quiet:
+            feedback("Building file list",
+                    "done: %s:%s%s has %d files\n" % \
+                    (spec.pkgname, ",".join(spec.filetypes),
+                        rpattern, len(new_files)))
         files |= new_files
 
     return files
 
 def build_file_list_pkg(cfg, sess, filespec, seen_packages):
     pkgname = filespec.pkgname
-    feedback("Building file list", pkgname)
+    if not cfg.quiet: feedback("Building file list", pkgname)
 
+    archpkg = False
     if "ARCH" in pkgname:
         # If a cpu architecture was not sepcified, then binaries are ignored.
         if cfg.arch is None:
@@ -157,6 +166,7 @@ def build_file_list_pkg(cfg, sess, filespec, seen_packages):
         else:
             # substitute in arch name
             pkgname = pkgname.replace("ARCH", cfg.arch)
+            archpkg = True
 
     try:
         seen_packages[pkgname]
@@ -170,7 +180,10 @@ def build_file_list_pkg(cfg, sess, filespec, seen_packages):
     try:
         pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
     except:
-        raise TeXSubsetError("Nonexistent TeX package: '%s'" % pkgname)
+        if archpkg and cfg.skip_missing_archpkgs:
+            return set()
+        else:
+            raise TeXSubsetError("Nonexistent TeX package: '%s'" % pkgname)
 
     # add files
     files = set()

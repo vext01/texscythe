@@ -78,6 +78,10 @@ if __name__ == "__main__":
             "(if not set, ARCH pkgs ignored)")
     parser.add_argument("-r", "--regex",
             help="filter final file list by regex before writing out")
+    parser.add_argument("-q", "--quiet", action='store_true',
+            help="be quiet")
+    parser.add_argument("-S", "--skip-missing-archpkgs",
+            action='store_true', help="skip missing ARCH packages")
 
     args = parser.parse_args()
 
@@ -88,18 +92,6 @@ if __name__ == "__main__":
     if len(chosen_tasks) != 1:
         parser.error("please select a single primary task.\n  one of: --initdb, --subset, --version")
 
-    # setup configuration
-    #config = {
-    #        "sqldb"             : "texscythe.db",
-    #        "plist"             : "PLIST",
-    #        "prefix_filenames"  : "",
-    #        "tlpdb"             : "texlive.tlpdb",
-    #        "arch"              : None,
-    #        "dirs"              : True,
-    #        "regex"             : None
-    #}
-
-    # build kwargs for Config constructor
     cfg_kws = {}
     if args.sqldb is not None:
         cfg_kws["sqldb"] = args.sqldb
@@ -116,13 +108,17 @@ if __name__ == "__main__":
     if args.regex is not None:
         cfg_kws["regex"] = args.regex
     if args.include is not None:
-        cfg_kws["inc_pkgs"] = args.include
+        cfg_kws["inc_pkgspecs"] = args.include
     if args.exclude is not None:
-        cfg_kws["exc_pkgs"] = args.exclude
+        cfg_kws["exc_pkgspecs"] = args.exclude
+    if args.quiet is not None:
+        cfg_kws["quiet"] = args.quiet
+    if args.skip_missing_archpkgs:
+        cfg_kws["skip_missing_archpkgs"] = args.skip_missing_archpkgs
 
     cfg = config.Config(**cfg_kws)
 
-    if not args.version:
+    if not args.version and not cfg.quiet:
         print_version()
         print(cfg)
         print("")

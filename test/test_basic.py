@@ -98,3 +98,15 @@ class Test_Basic(AbstractTest):
         files = self._read_in_plist()
 
         assert files == ["share/srcfiles/srcfile1"]
+
+    def test_nowrite_plist(self):
+        self.set_specs(["rootpkg"])
+        self.cfg.plist = None # don't write plist, return set
+        files = subset.compute_subset(self.cfg, self.sess)
+
+        expected = sorted(
+                [ "runfiles/runfile%d" % x for x in range(1, 4) ] + \
+                [ "docfiles/docfile%d" % x for x in range(1, 3) ] + \
+                [ "srcfiles/srcfile1" ])
+
+        assert files == expected

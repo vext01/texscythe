@@ -18,8 +18,9 @@ class ConfigError(Exception): pass
 class Config(object):
     """ Wrapper for command line configuration (with defaults) """
 
-    __fields = ["sqldb", "plist", "prefix_filenames", "tlpdb", "arch", "dirs",
-            "regex", "inc_pkgspecs", "exc_pkgspecs"]
+    __fields = ["sqldb", "plist", "prefix_filenames", "tlpdb",
+            "arch", "dirs", "regex", "inc_pkgspecs", "exc_pkgspecs",
+            "quiet", "skip_missing_archpkgs"]
 
     def __init__(self,
             sqldb="texscythe.db",
@@ -31,6 +32,8 @@ class Config(object):
             regex=None,
             inc_pkgspecs=[],
             exc_pkgspecs=[],
+            quiet=False,
+            skip_missing_archpkgs=False,
             ):
         self.sqldb = sqldb
         self.plist = plist
@@ -41,19 +44,13 @@ class Config(object):
         self.regex = regex
         self.inc_pkgspecs = inc_pkgspecs
         self.exc_pkgspecs = exc_pkgspecs
+        self.quiet = quiet
+        self.skip_missing_archpkgs = skip_missing_archpkgs
 
     def __str__(self):
-        s = []
-        s.append("Configuration:")
-        s.append("  sqldb: %s" % self.sqldb)
-        s.append("  plist: %s" % self.plist)
-        s.append("  prefix_filenames: %s" % self.prefix_filenames)
-        s.append("  tlpdb: %s" % self.tlpdb)
-        s.append("  arch: %s" % self.arch)
-        s.append("  dirs: %s" % self.dirs)
-        s.append("  regex: %s" % self.regex)
-        s.append("  inc_pkgspecs: %s" % self.inc_pkgspecs)
-        s.append("  exc_pkgspecs: %s" % self.exc_pkgspecs)
+        s = ["Configuration:"]
+        s = [ "  %s: %s" % (x, self.__dict__[x]) for
+                x in Config.__fields ]
         return "\n".join(s)
 
     def __setattr__(self, name, value):

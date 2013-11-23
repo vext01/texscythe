@@ -51,31 +51,32 @@ def user_feedback(s):
     sys.stdout.write(s)
     sys.stdout.flush()
 
-def parse(sess, filename):
-    user_feedback("Parsing TLPDB...")
+def parse(sess, cfg):
+    if not cfg.quiet: user_feedback("Parsing TLPDB...")
 
-    if filename.endswith(".gz"):
+    if cfg.tlpdb.endswith(".gz"):
         import gzip
-        with gzip.open(filename, "r") as fh: parse_lines(sess, fh)
+        with gzip.open(cfg.tlpdb, "r") as fh: parse_lines(sess, cfg, fh)
     else:
-        with open(filename, "r") as fh: parse_lines(sess, fh)
-    print("\n")
+        with open(cfg.tlpdb, "r") as fh: parse_lines(sess, cfg, fh)
 
-def parse_lines(sess, fh):
+    if not cfg.quiet: print("\n")
+
+def parse_lines(sess, cfg, fh):
     state = ParserState(None, ParserState.TOPLEVEL)
     for line in fh:
-        parse_line(sess, line.rstrip("\n"), state)
+        parse_line(sess, cfg, line.rstrip("\n"), state)
 
     # Commit the last package we saw since we may
     # not have seen a newline to otherwise cause the commit.
     if state.pkg is not None:
         sess.add(state.pkg)
 
-def parse_line(sess, line, state):
+def parse_line(sess, cfg, line, state):
     if line.startswith(" "):
-        parse_file_line(sess, line[1:], state)
+        parse_file_line(sess, cfg, line[1:], state)
     elif line.rstrip() == "":
-        parse_end_package(sess, line, state)
+        parse_end_package(sess, cfg, line, state)
     else:
         # If we get here, then the first word of the line is package metadata
         (field, data) = fieldname_and_data(line)
@@ -88,7 +89,7 @@ def parse_line(sess, line, state):
                     "Unknown package metadata '%s'. Missing handler %s()" % \
                     (field, funcname))
 
-        func(sess, data, state)
+        func(sess, cfg, data, state)
 
 filelevel_map = { \
     ParserState.DOCFILES : "d",
@@ -96,7 +97,7 @@ filelevel_map = { \
     ParserState.BINFILES : "b",
     ParserState.RUNFILES : "r",
     }
-def parse_file_line(sess, line, state):
+def parse_file_line(sess, cfg, line, state):
     """ We get here when we see a file that is part of a package """
     assert state.pkg is not None and state.filelevel != ParserState.TOPLEVEL
 
@@ -111,7 +112,7 @@ def parse_file_line(sess, line, state):
     fl = File(pkgname=state.pkg.pkgname, filename=fields[0], filetype=filelevel_map[state.filelevel])
     sess.add(fl)
 
-def parse_end_package(sess, data, state):
+def parse_end_package(sess, cfg, data, state):
     """ Called when we hit the blank line inbetween packages """
     assert(state.pkg is not None)
     sess.add(state.pkg)
@@ -119,22 +120,22 @@ def parse_end_package(sess, data, state):
     state.num_pkgs_parsed += 1
     if state.num_pkgs_parsed % ParserState.COMMIT_THRESHOLD == 0:
         sess.commit()
-        user_feedback("%s..." % state.num_pkgs_parsed)
+        if not cfg.quiet: user_feedback("%s..." % state.num_pkgs_parsed)
 
     state.filelevel = ParserState.TOPLEVEL
     state.pkg = None
 
-def parse_name_data(sess, data, state):
+def parse_name_data(sess, cfg, data, state):
     """ This is executed when we hit the beginning of a new package """
     assert(state.pkg is None and state.filelevel == ParserState.TOPLEVEL)
     state.pkg = Package.skel(data) # scaffold the package
     state.filelevel = ParserState.TOPLEVEL
 
-def parse_shortdesc_data(sess, data, state):
+def parse_shortdesc_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     state.pkg.shortdesc = data
 
-def parse_longdesc_data(sess, data, state):
+def parse_longdesc_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
 
     if state.pkg.longdesc is None: # first longdesc line
@@ -142,54 +143,54 @@ def parse_longdesc_data(sess, data, state):
 
     state.pkg.longdesc += data
 
-def parse_revision_data(sess, data, state):
+def parse_revision_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     state.pkg.revision = int(data)
 
-def parse_category_data(sess, data, state):
+def parse_category_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
 
-def parse_depend_data(sess, data, state):
+def parse_depend_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     dep = Dependency(pkgname=state.pkg.pkgname, needs=data)
     sess.add(dep)
 
 # Note that we assume that files information comes last in a package
-def parse_runfiles_data(sess, data, state):
+def parse_runfiles_data(sess, cfg, data, state):
     assert(state.pkg is not None)
     state.filelevel = ParserState.RUNFILES
 
-def parse_docfiles_data(sess, data, state):
+def parse_docfiles_data(sess, cfg, data, state):
     assert(state.pkg is not None)
     state.filelevel = ParserState.DOCFILES
 
-def parse_srcfiles_data(sess, data, state):
+def parse_srcfiles_data(sess, cfg, data, state):
     assert(state.pkg is not None)
     state.filelevel = ParserState.SRCFILES
 
-def parse_binfiles_data(sess, data, state):
+def parse_binfiles_data(sess, cfg, data, state):
     assert(state.pkg is not None)
     state.filelevel = ParserState.BINFILES
 
-def parse_catalogue_data(sess, data, state):
+def parse_catalogue_data(sess, cfg, data, state):
     pass
 
-def parse_catalogue_ctan_data(sess, data, state):
+def parse_catalogue_ctan_data(sess, cfg, data, state):
     pass
 
-def parse_catalogue_date_data(sess, data, state):
+def parse_catalogue_date_data(sess, cfg, data, state):
     pass
 
-def parse_catalogue_license_data(sess, data, state):
+def parse_catalogue_license_data(sess, cfg, data, state):
     pass
 
-def parse_catalogue_version_data(sess, data, state):
+def parse_catalogue_version_data(sess, cfg, data, state):
     pass
 
-def parse_execute_data(sess, data, state):
+def parse_execute_data(sess, cfg, data, state):
     pass
 
-def parse_postaction_data(sess, data, state):
+def parse_postaction_data(sess, cfg, data, state):
     pass
 
 def print_db_summary(sess):
@@ -209,11 +210,11 @@ def initdb(cfg, return_sess = False):
     DeclarativeBase.metadata.create_all(engine)
 
     # Populate db
-    parse(sess, cfg.tlpdb)
+    parse(sess, cfg)
     sess.commit()
 
     # Done
-    print_db_summary(sess)
+    if not cfg.quiet: print_db_summary(sess)
 
     if not return_sess:
         sess.close()
