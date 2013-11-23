@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 #
-# This is how we generate (a basis for) the OpenBSD packing lists for TeX Live.
+# This is how we generate (a basis for) the OpenBSD packing lists
+# for TeX Live.
 
 import os, sys, sh
 from texscythe import config, subset
@@ -114,10 +115,12 @@ def check_no_overlap(list1, list2):
     print("Checking no overlap between %s and %s" % (list1, list2))
 
     with open(list1, "r") as f:
-        set1 = set([ x.strip() for x in f.readlines() if not x.endswith("/\n")])
+        set1 = set([ x.strip() for x in f.readlines()
+            if not x.endswith("/\n")])
 
     with open(list2, "r") as f:
-        set2 = set([ x.strip() for x in f.readlines() if not x.endswith("/\n")])
+        set2 = set([ x.strip() for x in f.readlines()
+            if not x.endswith("/\n")])
 
     diff = set1.intersection(set2)
     if diff:
@@ -139,7 +142,6 @@ do_subset(
         )
 
 sh.sort(sh.cat(*all_plists), _out="PLIST-sanitycheck-actual")
-#check_no_overlap("PLIST-sanitycheck", "PLIST-sanitycheck-actual")
 
 # You can now diff the PLIST-sanitycheck against PLIST-sanitycheck-actual.
 # Only directory names should be duplicated. If you see PDF manuals in here
