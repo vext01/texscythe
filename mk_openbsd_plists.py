@@ -94,14 +94,14 @@ do_subset(
 # \----------------------------------------------------------
 
 # exclude manuals and dumb pdf manuals
-MAN_PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/(.*[0-9]|.*.man[0-9].pdf)$)"
+NO_MAN_PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/(.*[0-9]|.*.man[0-9].pdf)$)"
 
 print(">>> texlive_texmf-docs")
 doc_specs=["scheme-full:doc"]
 do_subset(
         inc_pkgspecs=doc_specs,
         plist="PLIST-doc",
-        regex=MAN_PDFMAN_REGEX
+        regex=NO_MAN_PDFMAN_REGEX
         )
 
 # /----------------------------------------------------------
