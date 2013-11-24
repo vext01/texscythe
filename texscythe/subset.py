@@ -122,7 +122,7 @@ def compute_subset(cfg, sess = None):
         if not cfg.quiet:
             sys.stderr.write("Writing file list to '%s'..." % cfg.plist)
         with open(cfg.plist, "w") as fh:
-            for fl in subset:
+            for fl in sorted(subset):
                 fh.write("%s%s\n" % (cfg.prefix_filenames, fl))
         if not cfg.quiet: sys.stderr.write("Done\n")
     else:
