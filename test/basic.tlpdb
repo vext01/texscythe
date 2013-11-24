@@ -47,3 +47,18 @@ longdesc pkg desc line 1
 longdesc pkg desc line 2
 runfiles size=23
  a/b/c/file1
+
+name test_nodepend_pkg
+shortdesc test no_depends works ok
+longdesc pkg desc line 1
+longdesc pkg desc line 2
+depend test_nodepend_pkg2
+runfiles size=666
+ a_file_we_should_find
+
+name test_nodepend_pkg2
+shortdesc test no_depends works ok
+longdesc pkg desc line 1
+longdesc pkg desc line 2
+runfiles size=666
+ a_file_we_should_NOT_find

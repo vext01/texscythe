@@ -19,14 +19,15 @@ from orm import Package, Dependency, File, init_orm
 class TeXSubsetError(Exception): pass
 
 class FileSpec(object):
-    def __init__(self, pkgname, filetypes, regex=None):
+    def __init__(self, pkgname, filetypes, regex=None, no_depends=False):
         self.pkgname = pkgname
         self.filetypes = filetypes
         self.regex = regex
+        self.no_depends = no_depends
 
     def __str__(self):
-        return "FileSpec: pkgname='%s', filetypes=%s, regex=%s" % \
-                (self.pkgname, self.filetypes, self.regex)
+        return "FileSpec: pkgname='%s', filetypes=%s, regex=%s, no_depends=%s" % \
+                (self.pkgname, self.filetypes, self.regex, self.no_depends)
 
 BLANK = 80 * " "
 def feedback(action, message):
@@ -37,10 +38,9 @@ def parse_subset_spec(spec):
     """ Parse subset specs. E.g.:
         scheme-tetex
         scheme-tetex:src
+        !scheme-tetex:src
         scheme-tetex:src,run,doc
         scheme-tetex:src,run,doc:.*\.pdf
-
-        returns a tuple, (name, list_of_filetypes)
     """
 
     elems = spec.split(":", 2)
@@ -52,6 +52,14 @@ def parse_subset_spec(spec):
     elems = elems + [ "" for x in range(3 - len(elems)) ]
 
     (pkgname, filetypes, regex) = elems
+
+    # if the package name is prefixed with a bang, it means, don't
+    # collect dependencies.
+    if pkgname.startswith("!"):
+        pkgname = pkgname[1:]
+        no_depends = True
+    else:
+        no_depends = False
 
     # parse file types
     if filetypes == "":
@@ -68,7 +76,7 @@ def parse_subset_spec(spec):
     else:
         regex = re.compile(regex)
 
-    return FileSpec(pkgname, filetypes, regex)
+    return FileSpec(pkgname, filetypes, regex, no_depends)
 
 def compute_subset(cfg, sess = None):
     # parse the pkgspecs
@@ -200,10 +208,10 @@ def build_file_list_pkg(cfg, sess, filespec, seen_packages):
     # Process deps and union with the above files.
     # Pass down a new FileSpec that inherits filetypes and regex from the
     # current filespec.
-    for dep in pkg.dependencies:
-        files |= build_file_list_pkg(cfg, sess,
-                FileSpec(dep.needs, filespec.filetypes, filespec.regex),
-                seen_packages)
-
+    if not filespec.no_depends:
+        for dep in pkg.dependencies:
+            files |= build_file_list_pkg(cfg, sess,
+                    FileSpec(dep.needs, filespec.filetypes, filespec.regex),
+                    seen_packages)
     # return them
     return files

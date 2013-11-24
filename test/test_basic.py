@@ -17,8 +17,8 @@ class Test_Basic(AbstractTest):
         super(Test_Basic, self).setup_method(method)
 
     def test_stats(self):
-        assert self.sess.query(File).count() == 11
-        assert self.sess.query(Package).count() == 5
+        assert self.sess.query(File).count() == 13
+        assert self.sess.query(Package).count() == 7
 
     def test_plist(self):
         self.set_specs(["rootpkg"])
@@ -110,3 +110,17 @@ class Test_Basic(AbstractTest):
                 [ "srcfiles/srcfile1" ])
 
         assert files == expected
+
+    def test_nodepend(self):
+        self.set_specs(["!rootpkg"])
+        subset.compute_subset(self.cfg, self.sess)
+        files = self._read_in_plist()
+
+        assert files == []
+
+    def test_nodepend2(self):
+        self.set_specs(["!test_nodepend_pkg:run"])
+        subset.compute_subset(self.cfg, self.sess)
+        files = self._read_in_plist()
+
+        assert files == ["a_file_we_should_find"]
