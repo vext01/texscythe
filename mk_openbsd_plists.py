@@ -55,12 +55,68 @@ buildset_pkgs = [
 
 print(">>> texlive_texmf-buildset")
 buildset_specs = runs_and_mans(buildset_pkgs)
-do_subset(inc_pkgspecs=buildset_specs, plist="PLIST-buildset")
+do_subset(
+        inc_pkgspecs=buildset_specs,
+        plist="PLIST-buildset",
+        prefix_filenames="share/"
+        )
+
+# /-------------------------------------
+# | CONTEXT
+# +-------------------------------------
+# | Guess what?
+# \-------------------------------------
+
+# Get this list from the collection-context pkg.
+# DO NOT INCLUDE DEPENDENCIES THAT WOULD APPEAR
+# IN OTHER SUBSETS, E.g. 'collection-basic'. Generally
+# you want all the depends that are prefixed "context-"
+# and "context". Note the use of ! to not follow deps.
+# This prevents us pulling in pdftex, xetex, ... again.
+context_pkgs = [
+        "!context",
+        "!context-account",
+        "!context-algorithmic",
+        "!context-bnf",
+        "!context-chromato",
+        "!context-construction-plan",
+        "!context-cyrillicnumbers",
+        "!context-degrade",
+        "!context-filter",
+        "!context-fixme",
+        "!context-french",
+        "!context-fullpage",
+        "!context-games",
+        "!context-gantt",
+        "!context-gnuplot",
+        "!context-letter",
+        "!context-lettrine",
+        "!context-lilypond",
+        "!context-mathsets",
+        "!context-notes-zh-cn",
+        "!context-rst",
+        "!context-ruby",
+        "!context-simplefonts",
+        "!context-simpleslides",
+        "!context-transliterator",
+        "!context-typearea",
+        "!context-typescripts",
+        "!context-vim"
+]
+
+print(">>> PLIST-context")
+context_specs = runs_and_mans(context_pkgs)
+do_subset(
+        inc_pkgspecs=context_specs,
+        plist="PLIST-context",
+        prefix_filenames="share/"
+        )
 
 # /----------------------------------------------------------
 # | MINIMAL
 # +----------------------------------------------------------
 # | Scheme-tetex minus anything we installed in the buildset
+# | (also no context)
 # \----------------------------------------------------------
 
 print(">>> texlive_texmf-minimal")
@@ -68,8 +124,9 @@ minimal_pkgs = ["scheme-tetex"]
 minimal_specs = runs_and_mans(minimal_pkgs)
 do_subset(
         inc_pkgspecs=minimal_specs,
-        exc_pkgspecs=buildset_pkgs,
-        plist="PLIST-minimal"
+        exc_pkgspecs=buildset_pkgs + context_pkgs,
+        plist="PLIST-minimal",
+        prefix_filenames="share/",
         )
 
 # /----------------------------------------------------------
@@ -83,8 +140,9 @@ full_pkgs = ["scheme-full"]
 full_specs = runs_and_mans(full_pkgs)
 do_subset(
         inc_pkgspecs=full_specs,
-        exc_pkgspecs=minimal_pkgs + buildset_pkgs,
-        plist="PLIST-full"
+        exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs,
+        plist="PLIST-full",
+        prefix_filenames="share/",
         )
 
 # /----------------------------------------------------------
@@ -100,8 +158,9 @@ print(">>> texlive_texmf-docs")
 doc_specs=["scheme-full:doc"]
 do_subset(
         inc_pkgspecs=doc_specs,
-        plist="PLIST-doc",
-        regex=NO_MAN_PDFMAN_REGEX
+        plist="PLIST-docs",
+        regex=NO_MAN_PDFMAN_REGEX,
+        prefix_filenames="share/",
         )
 
 # /----------------------------------------------------------
@@ -127,7 +186,8 @@ def check_no_overlap(list1, list2):
         raise NastyError("Overlapping packing lists:\n%s" % diff)
 
 # check each PLIST against each other for overlap
-all_plists = ("PLIST-buildset", "PLIST-minimal", "PLIST-full", "PLIST-doc")
+all_plists = ("PLIST-buildset", "PLIST-minimal", "PLIST-full",
+    "PLIST-docs", "PLIST-context")
 for (l1, l2) in [ (x, y) for x in all_plists for y in all_plists if x < y ]:
     check_no_overlap(l1, l2)
 
@@ -138,7 +198,8 @@ sanity_specs = ["scheme-full:run,doc"]
 do_subset(
         inc_pkgspecs=sanity_specs,
         plist="PLIST-sanitycheck",
-        regex=PDFMAN_REGEX
+        regex=PDFMAN_REGEX,
+        prefix_filenames="share/",
         )
 
 sh.sort(sh.cat(*all_plists), _out="PLIST-sanitycheck-actual")
