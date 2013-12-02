@@ -13,7 +13,6 @@ ih = open(sys.argv[2], "r")
 oh = open(sys.argv[3], "w")
 for line in ih:
     line = line.strip()
-    print(repr(line))
     if line not in rmfiles:
         oh.write(line + "\n")
 
