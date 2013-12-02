@@ -3,7 +3,7 @@
 # This is how we generate (a basis for) the OpenBSD packing lists
 # for TeX Live.
 
-import os, sys, sh
+import os, sys, sh, re
 from texscythe import config, subset
 
 class NastyError(Exception): pass
@@ -23,6 +23,24 @@ def runs_and_mans(pkglist):
     for pkg in pkglist:
         specs.extend(runs_and_mans_single(pkg))
     return specs
+
+def find_manuals_not_docfiles(incpkgs, excpkgs=[]):
+    print("Checking for manuals which are not docfiles...")
+
+    incspecs = [ "%s:run,src,bin" % p for p in incpkgs ]
+    excspecs = [ "%s:run,src,bin" % p for p in excpkgs ]
+    cfgp = config.Config(inc_pkgspecs=incspecs, exc_pkgspecs=excspecs, plist=None)
+
+    files = subset.compute_subset(cfgp)
+    regex = "texmf-dist\/doc\/man\/man[0-9]\/(.*.man[0-9].pdf|.*\.1)$"
+    bad = [ x for x in files if re.match(regex, x) ]
+
+    if bad:
+        print(" [ FAIL ]\nManual pages are not categorised as docfiles:\n")
+        for f in bad:
+            print("  " + f)
+    else:
+        print(" [ OK ]\n")
 
 # /-------------------------------------
 # | BUILDSET
@@ -60,6 +78,8 @@ do_subset(
         plist="PLIST-buildset",
         prefix_filenames="share/"
         )
+#find_manuals_not_docfiles(buildset_pkgs)
+print("\n\n")
 
 # /-------------------------------------
 # | CONTEXT
@@ -111,6 +131,8 @@ do_subset(
         plist="PLIST-context",
         prefix_filenames="share/"
         )
+#find_manuals_not_docfiles(context_pkgs)
+print("\n\n")
 
 # /----------------------------------------------------------
 # | MINIMAL
@@ -128,6 +150,8 @@ do_subset(
         plist="PLIST-minimal",
         prefix_filenames="share/",
         )
+#find_manuals_not_docfiles(minimal_pkgs, buildset_pkgs + context_pkgs)
+print("\n\n")
 
 # /----------------------------------------------------------
 # | FULL
@@ -144,6 +168,8 @@ do_subset(
         plist="PLIST-full",
         prefix_filenames="share/",
         )
+#find_manuals_not_docfiles(full_pkgs, minimal_pkgs + buildset_pkgs + context_pkgs)
+print("\n\n")
 
 # /----------------------------------------------------------
 # | DOCS
@@ -162,6 +188,7 @@ do_subset(
         regex=NO_MAN_PDFMAN_REGEX,
         prefix_filenames="share/",
         )
+print("\n\n")
 
 # /----------------------------------------------------------
 # | SANITY CHECKING
