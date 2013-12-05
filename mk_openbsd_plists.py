@@ -3,7 +3,9 @@
 # This is how we generate (a basis for) the OpenBSD packing lists
 # for TeX Live.
 
-import os, sys, sh, re
+# XXX never include asymptote, latexmk, texworks
+
+import os, sys, re
 from texscythe import config, subset
 
 class NastyError(Exception): pass
@@ -13,9 +15,9 @@ def do_subset(**kwargs):
     subset.compute_subset(cfg)
 
 # Collect runfiles and manuals of a packages
-MAN_REGEX="texmf-dist\/doc\/man\/man[0-9]\/.*[0-9]$"
+MAN_INFO_REGEX="texmf-dist\/doc\/(man\/man[0-9]\/.*[0-9]|info\/.*\.info)$"
 def runs_and_mans_single(pkg):
-    return [("{0}:run".format(pkg)), "{0}:doc:{1}".format(pkg, MAN_REGEX)]
+    return [("{0}:run".format(pkg)), "{0}:doc:{1}".format(pkg, MAN_INFO_REGEX)]
 
 # Collect runfiles and manuals of a list of packages
 def runs_and_mans(pkglist):
@@ -178,14 +180,14 @@ print("\n\n")
 # \----------------------------------------------------------
 
 # exclude manuals and dumb pdf manuals
-NO_MAN_PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/(.*[0-9]|.*.man[0-9].pdf)$)"
+NO_MAN_INFO_PDFMAN_REGEX="(?!texmf-dist\/doc\/(man\/man[0-9]\/(.*[0-9]|.*.man[0-9].pdf)|info\/.*\.info)$)"
 
 print(">>> texlive_texmf-docs")
 doc_specs=["scheme-full:doc"]
 do_subset(
         inc_pkgspecs=doc_specs,
         plist="PLIST-docs",
-        regex=NO_MAN_PDFMAN_REGEX,
+        regex=NO_MAN_INFO_PDFMAN_REGEX,
         prefix_filenames="share/",
         )
 print("\n\n")
@@ -219,18 +221,19 @@ for (l1, l2) in [ (x, y) for x in all_plists for y in all_plists if x < y ]:
     check_no_overlap(l1, l2)
 
 # Check the concatenation of the above plists is what we expect
-print("Check everything included")
-PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/.*.man[0-9].pdf$)"
-sanity_specs = ["scheme-full:run,doc"]
-do_subset(
-        inc_pkgspecs=sanity_specs,
-        plist="PLIST-sanitycheck",
-        regex=PDFMAN_REGEX,
-        prefix_filenames="share/",
-        )
-
-sh.sort(sh.cat(*all_plists), _out="PLIST-sanitycheck-actual")
-
+#print("Check everything included")
+#PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/.*.man[0-9].pdf$)"
+#sanity_specs = ["scheme-full:run,doc"]
+#do_subset(
+#        inc_pkgspecs=sanity_specs,
+#        plist="PLIST-sanitycheck",
+#        regex=PDFMAN_REGEX,
+#        prefix_filenames="share/",
+#        )
+#
+#import sh
+#sh.sort(sh.cat(*all_plists), _out="PLIST-sanitycheck-actual")
+#
 # You can now diff the PLIST-sanitycheck against PLIST-sanitycheck-actual.
 # Only directory names should be duplicated. If you see PDF manuals in here
 # then they have probably been errorneously marked as runfiles instead of
