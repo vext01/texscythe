@@ -44,6 +44,9 @@ def find_manuals_not_docfiles(incpkgs, excpkgs=[]):
     else:
         print(" [ OK ]\n")
 
+# Stuff which is ported separately from texlive in OpenBSD
+never_pkgs = ["asymptote", "latexmk", "texworks"]
+
 # /-------------------------------------
 # | BUILDSET
 # +-------------------------------------
@@ -77,6 +80,7 @@ print(">>> texlive_texmf-buildset")
 buildset_specs = runs_and_mans(buildset_pkgs)
 do_subset(
         inc_pkgspecs=buildset_specs,
+        exc_pkgspecs=never_pkgs,
         plist="PLIST-buildset",
         prefix_filenames="share/"
         )
@@ -130,6 +134,7 @@ print(">>> PLIST-context")
 context_specs = runs_and_mans(context_pkgs)
 do_subset(
         inc_pkgspecs=context_specs,
+        exc_pkgspecs=never_pkgs,
         plist="PLIST-context",
         prefix_filenames="share/"
         )
@@ -148,7 +153,7 @@ minimal_pkgs = ["scheme-tetex"]
 minimal_specs = runs_and_mans(minimal_pkgs)
 do_subset(
         inc_pkgspecs=minimal_specs,
-        exc_pkgspecs=buildset_pkgs + context_pkgs,
+        exc_pkgspecs=buildset_pkgs + context_pkgs + never_pkgs,
         plist="PLIST-minimal",
         prefix_filenames="share/",
         )
@@ -166,7 +171,7 @@ full_pkgs = ["scheme-full"]
 full_specs = runs_and_mans(full_pkgs)
 do_subset(
         inc_pkgspecs=full_specs,
-        exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs,
+        exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs + never_pkgs,
         plist="PLIST-full",
         prefix_filenames="share/",
         )
@@ -186,6 +191,7 @@ print(">>> texlive_texmf-docs")
 doc_specs=["scheme-full:doc"]
 do_subset(
         inc_pkgspecs=doc_specs,
+        exc_pkgspecs=never_pkgs,
         plist="PLIST-docs",
         regex=NO_MAN_INFO_PDFMAN_REGEX,
         prefix_filenames="share/",
