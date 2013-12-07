@@ -68,3 +68,27 @@ class Test_BasicWithArch(AbstractTest):
         files2 = self._read_in_plist()
 
         assert files1 == files2
+
+class Test_SkipMissingArchPkgs(AbstractTest):
+
+    def setup_method(self, method):
+        self.cfg = config.Config(
+                sqldb=os.path.join(DIRPATH, "missing_archpkg.db"),
+                plist=os.path.join(DIRPATH, "PLIST-missing_archpkg"),
+                tlpdb=os.path.join(DIRPATH, "error_missing_archpkg.tlpdb"),
+                arch="amd64-linux",
+                dirs=False
+                )
+
+        super(Test_SkipMissingArchPkgs, self).setup_method(method)
+
+    def test_missing_archpkg(self):
+        self.cfg.inc_pkgspecs = ["rootpkg"]
+        self.cfg.skip_missing_archpkgs = True
+
+        # This should not raise
+        subset.compute_subset(self.cfg, self.sess)
+
+        # And we should have no files
+        files = self._read_in_plist()
+        assert len(files) == 0
