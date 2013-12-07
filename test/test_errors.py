@@ -60,3 +60,9 @@ class Test_Errors(object):
         # the config instance namespace is protected.
         c = config.Config()
         pytest.raises(config.ConfigError, "c.bad_field = 'oh no!'")
+
+    def test_missing_archpkg(self):
+        self.parse_file("error_missing_archpkg")
+        self.cfg.inc_pkgspecs = ["rootpkg"]
+        pytest.raises(TeXSubsetError,
+            'subset.compute_subset(self.cfg, self.sess)')
