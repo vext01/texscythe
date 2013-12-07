@@ -1,0 +1,10 @@
+name rootpkg
+category core
+revision 666
+shortdesc toplevel test package
+longdesc rootpkg desc line 1
+longdesc rootpkg desc line 2
+longdesc rootpkg desc line 3
+longdesc rootpkg desc line 4
+longdesc rootpkg desc line 5
+depend nonexistent.ARCH
