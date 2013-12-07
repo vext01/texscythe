@@ -43,13 +43,14 @@ class Test_Errors(object):
 
     def test_nonexistent_dep(self):
         self.parse_file("error_nonexistent_dep")
+        self.cfg.inc_pkgspecs = ["rootpkg"]
         pytest.raises(TeXSubsetError,
-            'subset.compute_subset(self.cfg, ["rootpkg"], None, self.sess)')
+            'subset.compute_subset(self.cfg, self.sess)')
 
     def test_unknwown_filetype(self):
         pytest.raises(TeXParseError, 'self.parse_file("error_unknown_filetype")')
 
-    def test_nonexistent_dep(self):
+    def test_bad_filetype_dep(self):
         self.parse_file("basic") # should work
         # now ask for a class of file which is bogus, in this case 'fartfiles'
         self.cfg.inc_pkgspecs = ["rootpkg:fart"]
