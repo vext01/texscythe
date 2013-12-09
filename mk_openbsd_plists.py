@@ -3,8 +3,6 @@
 # This is how we generate (a basis for) the OpenBSD packing lists
 # for TeX Live.
 
-# XXX never include asymptote, latexmk, texworks
-
 import os, sys, re
 from texscythe import config, subset
 
@@ -74,6 +72,8 @@ buildset_pkgs = [
     "times", "helvetic", "rsfs",
     # devel/darcs
     "preprint",
+    # print/lilypond (indirect via fonts/mftrace)
+    "metapost",
     ]
 
 print(">>> texlive_texmf-buildset")
@@ -188,7 +188,7 @@ print("\n\n")
 NO_MAN_INFO_PDFMAN_REGEX="(?!texmf-dist\/doc\/(man\/man[0-9]\/(.*[0-9]|.*.man[0-9].pdf)|info\/.*\.info)$)"
 
 print(">>> texlive_texmf-docs")
-doc_specs=["scheme-full:doc"]
+doc_specs=["scheme-tetex:doc"]
 do_subset(
         inc_pkgspecs=doc_specs,
         exc_pkgspecs=never_pkgs,
