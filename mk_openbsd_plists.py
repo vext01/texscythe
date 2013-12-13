@@ -10,7 +10,7 @@ class NastyError(Exception): pass
 
 def do_subset(**kwargs):
     cfg = config.Config(**kwargs)
-    subset.compute_subset(cfg)
+    return subset.compute_subset(cfg)
 
 # Collect runfiles and manuals of a packages
 MAN_INFO_REGEX="texmf-dist\/doc\/(man\/man[0-9]\/.*[0-9]|info\/.*\.info)$"
@@ -41,6 +41,11 @@ def find_manuals_not_docfiles(incpkgs, excpkgs=[]):
             print("  " + f)
     else:
         print(" [ OK ]\n")
+
+def write_plist(files, filename):
+    with open(filename, "w") as fh:
+        for f in files:
+            fh.write(f + "\n")
 
 # Stuff which is ported separately from texlive in OpenBSD
 never_pkgs = ["asymptote", "latexmk", "texworks"]
@@ -78,12 +83,13 @@ buildset_pkgs = [
 
 print(">>> texlive_texmf-buildset")
 buildset_specs = runs_and_mans(buildset_pkgs)
-do_subset(
+buildset_files = do_subset(
         inc_pkgspecs=buildset_specs,
         exc_pkgspecs=never_pkgs,
-        plist="PLIST-buildset",
+        plist = None,
         prefix_filenames="share/"
         )
+write_plist(buildset_files, "PLIST-buildset")
 #find_manuals_not_docfiles(buildset_pkgs)
 print("\n\n")
 
@@ -132,12 +138,13 @@ context_pkgs = [
 
 print(">>> PLIST-context")
 context_specs = runs_and_mans(context_pkgs)
-do_subset(
+context_files = do_subset(
         inc_pkgspecs=context_specs,
         exc_pkgspecs=never_pkgs,
-        plist="PLIST-context",
+        plist=None,
         prefix_filenames="share/"
         )
+write_plist(context_files, "PLIST-context")
 #find_manuals_not_docfiles(context_pkgs)
 print("\n\n")
 
@@ -151,12 +158,13 @@ print("\n\n")
 print(">>> texlive_texmf-minimal")
 minimal_pkgs = ["scheme-tetex"]
 minimal_specs = runs_and_mans(minimal_pkgs)
-do_subset(
+minimal_files = do_subset(
         inc_pkgspecs=minimal_specs,
         exc_pkgspecs=buildset_pkgs + context_pkgs + never_pkgs,
-        plist="PLIST-minimal",
+        plist=None,
         prefix_filenames="share/",
         )
+write_plist(minimal_files, "PLIST-main")
 #find_manuals_not_docfiles(minimal_pkgs, buildset_pkgs + context_pkgs)
 print("\n\n")
 
@@ -169,12 +177,13 @@ print("\n\n")
 print(">>> texlive_texmf-full")
 full_pkgs = ["scheme-full"]
 full_specs = runs_and_mans(full_pkgs)
-do_subset(
+full_files = do_subset(
         inc_pkgspecs=full_specs,
         exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs + never_pkgs,
-        plist="PLIST-full",
+        plist=None,
         prefix_filenames="share/",
         )
+write_plist(full_files, "PLIST-full")
 #find_manuals_not_docfiles(full_pkgs, minimal_pkgs + buildset_pkgs + context_pkgs)
 print("\n\n")
 
@@ -189,13 +198,14 @@ NO_MAN_INFO_PDFMAN_REGEX="(?!texmf-dist\/doc\/(man\/man[0-9]\/(.*[0-9]|.*.man[0-
 
 print(">>> texlive_texmf-docs")
 doc_specs=["scheme-tetex:doc"]
-do_subset(
+doc_files = do_subset(
         inc_pkgspecs=doc_specs,
         exc_pkgspecs=never_pkgs,
-        plist="PLIST-docs",
+        plist=None,
         regex=NO_MAN_INFO_PDFMAN_REGEX,
         prefix_filenames="share/",
         )
+write_plist(doc_files, "PLIST-docs")
 print("\n\n")
 
 # /----------------------------------------------------------
@@ -221,7 +231,7 @@ def check_no_overlap(list1, list2):
         raise NastyError("Overlapping packing lists:\n%s" % diff)
 
 # check each PLIST against each other for overlap
-all_plists = ("PLIST-buildset", "PLIST-minimal", "PLIST-full",
+all_plists = ("PLIST-buildset", "PLIST-main", "PLIST-full",
     "PLIST-docs", "PLIST-context")
 for (l1, l2) in [ (x, y) for x in all_plists for y in all_plists if x < y ]:
     check_no_overlap(l1, l2)
