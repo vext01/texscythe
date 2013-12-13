@@ -42,10 +42,14 @@ def find_manuals_not_docfiles(incpkgs, excpkgs=[]):
     else:
         print(" [ OK ]\n")
 
-def write_plist(files, filename):
+def writelines(fh, lines):
+    for i in lines: fh.write(i + "\n")
+
+def write_plist(files, filename, top_matter=[], bottom_matter=[]):
     with open(filename, "w") as fh:
-        for f in files:
-            fh.write(f + "\n")
+        writelines(fh, top_matter)
+        writelines(fh, files)
+        writelines(fh, bottom_matter)
 
 # Stuff which is ported separately from texlive in OpenBSD
 never_pkgs = ["asymptote", "latexmk", "texworks"]
