@@ -134,7 +134,7 @@ def compute_subset(cfg, sess = None):
                 fh.write("%s%s\n" % (cfg.prefix_filenames, fl))
         if not cfg.quiet: sys.stderr.write("Done\n")
     else:
-        return subset
+        return sorted([ "%s%s" % (cfg.prefix_filenames, f) for f in subset])
 
 def build_file_list(cfg, sess, filespecs):
     # we have to be careful how we do this to not explode the memory.

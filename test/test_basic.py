@@ -99,6 +99,14 @@ class Test_Basic(AbstractTest):
 
         assert files == ["share/srcfiles/srcfile1"]
 
+    def test_filename_prefix2(self):
+        self.cfg.prefix_filenames = "share/"
+        self.cfg.plist = None # Return file list
+        self.set_specs(["rootpkg:src"])
+        files = subset.compute_subset(self.cfg, self.sess)
+
+        assert files == ["share/srcfiles/srcfile1"]
+
     def test_nowrite_plist(self):
         self.set_specs(["rootpkg"])
         self.cfg.plist = None # don't write plist, return set
