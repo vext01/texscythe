@@ -87,13 +87,24 @@ buildset_pkgs = [
 
 print(">>> texlive_texmf-buildset")
 buildset_specs = runs_and_mans(buildset_pkgs)
+buildset_top_matter = [
+    "@comment $OpenBSD$",
+    "@conflict teTeX_texmf-*",
+    "@conflict texlive_base-<2013",
+    "@conflict texlive_texmf-docs-<2013",
+    "@conflict texlive_texmf-minimal-<2013",
+    "@conflict texlive_texmf-full-<2013",
+    "@conflict texlive_texmf-context-<2013",
+    "@pkgpath print/texlive/texmf-minimal",
+    "@pkgpath print/teTeX/texmf",
+]
 buildset_files = do_subset(
         inc_pkgspecs=buildset_specs,
         exc_pkgspecs=never_pkgs,
         plist = None,
         prefix_filenames="share/"
         )
-write_plist(buildset_files, "PLIST-buildset")
+write_plist(buildset_files, "PLIST-buildset", buildset_top_matter)
 #find_manuals_not_docfiles(buildset_pkgs)
 print("\n\n")
 
@@ -141,6 +152,21 @@ context_pkgs = [
 ]
 
 print(">>> PLIST-context")
+context_top_matter = [
+    "@comment $OpenBSD$",
+    "@conflict teTeX_texmf-*",
+    "@conflict texlive_base-<2013",
+    "@conflict texlive_texmf-docs-<2013",
+    "@conflict texlive_texmf-full-<2013",
+    "@conflict texlive_texmf-buildset-<2013",
+    "@conflict texlive_texmf-minimal-<2013",
+]
+context_bottom_matter = [
+    "@unexec rm -Rf %D/share/texmf-var/luatex-cache",
+    "@exec %D/bin/mtxrun --generate > /dev/null 2>&1",
+    "@exec %D/bin/mktexlsr > /dev/null 2>&1",
+    "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
+]
 context_specs = runs_and_mans(context_pkgs)
 context_files = do_subset(
         inc_pkgspecs=context_specs,
@@ -148,7 +174,8 @@ context_files = do_subset(
         plist=None,
         prefix_filenames="share/"
         )
-write_plist(context_files, "PLIST-context")
+write_plist(context_files, "PLIST-context",
+        context_top_matter, context_bottom_matter)
 #find_manuals_not_docfiles(context_pkgs)
 print("\n\n")
 
@@ -161,6 +188,20 @@ print("\n\n")
 
 print(">>> texlive_texmf-minimal")
 minimal_pkgs = ["scheme-tetex"]
+minimal_top_matter = [
+    "@comment $OpenBSD$",
+    "@conflict teTeX_texmf-*",
+    "@conflict texlive_base-<2013",
+    "@conflict texlive_texmf-docs-<2013",
+    "@conflict texlive_texmf-full-<2013",
+    "@conflict texlive_texmf-buildset-<2013",
+    "@conflict texlive_texmf-context-<2013",
+    "@pkgpath print/teTeX/texmf",
+]
+minimal_bottom_matter = [
+    "@exec %D/bin/mktexlsr > /dev/null 2>&1",
+    "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
+]
 minimal_specs = runs_and_mans(minimal_pkgs)
 minimal_files = do_subset(
         inc_pkgspecs=minimal_specs,
@@ -168,7 +209,8 @@ minimal_files = do_subset(
         plist=None,
         prefix_filenames="share/",
         )
-write_plist(minimal_files, "PLIST-main")
+write_plist(minimal_files, "PLIST-main",
+        minimal_top_matter, minimal_bottom_matter)
 #find_manuals_not_docfiles(minimal_pkgs, buildset_pkgs + context_pkgs)
 print("\n\n")
 
@@ -180,6 +222,21 @@ print("\n\n")
 
 print(">>> texlive_texmf-full")
 full_pkgs = ["scheme-full"]
+full_top_matter = [
+    "@comment $OpenBSD$",
+    "@conflict teTeX_texmf-*",
+    "@conflict texlive_base-<2013",
+    "@conflict texlive_texmf-docs-<2013",
+    "@conflict texlive_texmf-minimal-<2013",
+    "@conflict texlive_texmf-buildset-<2013",
+    "@conflict texlive_texmf-contextt-<2013",
+    "@pkgpath print/texlive/texmf-full",
+    "@pkgpath print/teTeX/texmf",
+]
+full_bottom_matter = [
+    "@exec %D/bin/mktexlsr > /dev/null 2>&1",
+    "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
+]
 full_specs = runs_and_mans(full_pkgs)
 full_files = do_subset(
         inc_pkgspecs=full_specs,
@@ -187,7 +244,7 @@ full_files = do_subset(
         plist=None,
         prefix_filenames="share/",
         )
-write_plist(full_files, "PLIST-full")
+write_plist(full_files, "PLIST-full", full_top_matter, full_bottom_matter)
 #find_manuals_not_docfiles(full_pkgs, minimal_pkgs + buildset_pkgs + context_pkgs)
 print("\n\n")
 
@@ -202,6 +259,21 @@ NO_MAN_INFO_PDFMAN_REGEX="(?!texmf-dist\/doc\/(man\/man[0-9]\/(.*[0-9]|.*.man[0-
 
 print(">>> texlive_texmf-docs")
 doc_specs=["scheme-tetex:doc"]
+doc_top_matter = [
+    "@comment $OpenBSD$",
+    "@conflict teTeX_texmf-doc-*",
+    "@conflict texlive_base-<2013",
+    "@conflict texlive_texmf-minimal-<2013",
+    "@conflict texlive_texmf-full-<2013",
+    "@conflict texlive_texmf-buildset-<2013",
+    "@conflict texlive_texmf-context-<2013",
+    "@pkgpath print/texlive/texmf-docs",
+    "@pkgpath print/teTeX_texmf,-doc",
+]
+doc_bottom_matter = [
+    "@exec %D/bin/mktexlsr > /dev/null 2>&1",
+    "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
+]
 doc_files = do_subset(
         inc_pkgspecs=doc_specs,
         exc_pkgspecs=never_pkgs,
@@ -209,7 +281,7 @@ doc_files = do_subset(
         regex=NO_MAN_INFO_PDFMAN_REGEX,
         prefix_filenames="share/",
         )
-write_plist(doc_files, "PLIST-docs")
+write_plist(doc_files, "PLIST-docs", doc_top_matter, doc_bottom_matter)
 print("\n\n")
 
 # /----------------------------------------------------------
@@ -219,19 +291,19 @@ print("\n\n")
 print(">>> sanity check")
 
 # Check there is no overlap in any of the above lists
+def read_plist_back(filename):
+    with open(filename, "r") as f:
+        set1 = set([ x.strip() for x in f.readlines()
+            if (not x.endswith("/\n")) and (not x.startswith("@")) ])
+    return set1
+
 def check_no_overlap(list1, list2):
     print("Checking no overlap between %s and %s" % (list1, list2))
 
-    with open(list1, "r") as f:
-        set1 = set([ x.strip() for x in f.readlines()
-            if not x.endswith("/\n")])
+    set1 = read_plist_back(list1)
+    set2 = read_plist_back(list2)
 
-    with open(list2, "r") as f:
-        set2 = set([ x.strip() for x in f.readlines()
-            if not x.endswith("/\n")])
-
-    diff = set1.intersection(set2)
-    if diff:
+    if set1.intersection(set2):
         raise NastyError("Overlapping packing lists:\n%s" % diff)
 
 # check each PLIST against each other for overlap
