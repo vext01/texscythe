@@ -83,11 +83,55 @@ TEXMF_VAR_FILES = [
     "share/texmf-var/web2c/xetex/xetex.fmt",
 ]
 
+def remove_if_in_list(el, ls):
+    if el in ls: ls.remove(el)
+
+def relocate_mans_and_infos(filelist):
+    filelist = filelist[:]
+    remove_if_in_list("share/texmf-dist/doc/man/", filelist)
+    remove_if_in_list("share/texmf-dist/doc/info/", filelist)
+    for i in range(1, 9):
+        try:
+            filelist.remove("share/texmf-dist/doc/man/man%s/" % i)
+        except ValueError:
+            pass
+
+    filelist = [ re.sub("^share/texmf-dist/doc/(man|info)/", "@\g<1> \g<1>/", i)
+            for i in filelist ]
+
+    # look for any remaining files in share/texmf-dist/doc
+    # if there are none, then remove the doc dir entry
+    found = False
+    for i in filelist:
+        if re.match("^share/texmf-dist/doc/.+$", i):
+            found = True
+            break
+    if not found: filelist.remove("share/texmf-dist/doc/")
+
+    return filelist
+
+def filter_junk(filelist):
+    return [ x for x in filelist if
+            # Windows junk
+            #not re.match(".*\.([Ee][Xx][Ee]|[Bb][Aa][Tt])$", x) and # XXX
+            not re.match(".*\.[Ee][Xx][Ee]$", x) and
+            not re.match(".*/mswin/.*", x) and
+            # We don't want anything that isn't in the texmf tree.
+            # Most of this is installer stuff which does not apply
+            # to us.
+            (x.startswith("share/texmf") or x.startswith("@"))
+            # TeXmf bugs XXX
+    ]
+
 class NastyError(Exception): pass
 
 def do_subset(**kwargs):
+    assert kwargs['plist'] is None
     cfg = config.Config(**kwargs)
-    return subset.compute_subset(cfg)
+    files = subset.compute_subset(cfg)
+    files = relocate_mans_and_infos(files)
+    files = filter_junk(files)
+    return sorted(files)
 
 # Collect runfiles and manuals of a packages
 MAN_INFO_REGEX="texmf-dist\/doc\/(man\/man[0-9]\/.*[0-9]|info\/.*\.info)$"
