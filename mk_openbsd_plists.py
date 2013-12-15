@@ -265,6 +265,13 @@ buildset_files = do_subset(
         prefix_filenames="share/"
         )
 buildset_files = sorted(buildset_files + TEXMF_VAR_FILES)
+
+# Surpress dvips files and manuals/infos from the buildset
+# we carry these forward to minimal texmf.
+carry_forward_files = [ x for x in buildset_files if
+    "dvips" in x or x.startswith("@man") or x.startswith("@info") ]
+buildset_files = sorted(set(buildset_files) - set(carry_forward_files))
+
 write_plist(buildset_files, "PLIST-buildset", buildset_top_matter)
 #find_manuals_not_docfiles(buildset_pkgs)
 print("\n\n")
@@ -370,6 +377,7 @@ minimal_files = do_subset(
         plist=None,
         prefix_filenames="share/",
         )
+minimal_files = sorted(minimal_files + carry_forward_files)
 write_plist(minimal_files, "PLIST-main",
         minimal_top_matter, minimal_bottom_matter)
 #find_manuals_not_docfiles(minimal_pkgs, buildset_pkgs + context_pkgs)
