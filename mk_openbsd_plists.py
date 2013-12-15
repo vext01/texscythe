@@ -5,6 +5,10 @@
 import os, sys, re
 from texscythe import config, subset
 
+class NastyError(Exception): pass
+
+YEAR = 2013
+
 # Files from our preenerated 'texmf-var' tarball.
 # This may change from year to year.
 TEXMF_VAR_FILES = [
@@ -142,28 +146,10 @@ def remove_if_in_list(el, ls):
 
 def relocate_mans_and_infos(filelist):
     filelist = filelist[:]
-    remove_if_in_list("share/texmf-dist/doc/man/", filelist)
-    remove_if_in_list("share/texmf-dist/doc/info/", filelist)
+
     remove_if_in_list("share/texmf-dist/doc/info/dir", filelist)
-    for i in range(1, 9):
-        try:
-            filelist.remove("share/texmf-dist/doc/man/man%s/" % i)
-        except ValueError:
-            pass
-
-    filelist = [ re.sub("^share/texmf-dist/doc/(man|info)/", "@\g<1> \g<1>/", i)
+    return [ re.sub("^share/texmf-dist/doc/(man|info)/", "@\g<1> \g<1>/", i)
             for i in filelist ]
-
-    # look for any remaining files in share/texmf-dist/doc
-    # if there are none, then remove the doc dir entry
-    #found = False
-    #for i in filelist:
-    #    if re.match("^share/texmf-dist/doc/.+$", i):
-    #        found = True
-    #        break
-    #if not found: filelist.remove("share/texmf-dist/doc/")
-
-    return filelist
 
 def filter_junk(filelist):
     return [ x for x in filelist if
@@ -178,13 +164,11 @@ def filter_junk(filelist):
             # Most of this is installer stuff which does not apply
             # to us.
             (x.startswith("share/texmf") or x.startswith("@")) and
-            # TeXmf bugs XXX
+            # TeXmf bugs
             not x in BUG_MISSING_FILES and
             # Stuff provided by other ports
             not x in CONFLICT_FILES
     ]
-
-class NastyError(Exception): pass
 
 def do_subset(**kwargs):
     assert kwargs['plist'] is None
@@ -205,24 +189,6 @@ def runs_and_mans(pkglist):
     for pkg in pkglist:
         specs.extend(runs_and_mans_single(pkg))
     return specs
-
-def find_manuals_not_docfiles(incpkgs, excpkgs=[]):
-    print("Checking for manuals which are not docfiles...")
-
-    incspecs = [ "%s:run,src,bin" % p for p in incpkgs ]
-    excspecs = [ "%s:run,src,bin" % p for p in excpkgs ]
-    cfgp = config.Config(inc_pkgspecs=incspecs, exc_pkgspecs=excspecs, plist=None)
-
-    files = subset.compute_subset(cfgp)
-    regex = "texmf-dist\/doc\/man\/man[0-9]\/(.*.man[0-9].pdf|.*\.1)$"
-    bad = [ x for x in files if re.match(regex, x) ]
-
-    if bad:
-        print(" [ FAIL ]\nManual pages are not categorised as docfiles:\n")
-        for f in bad:
-            print("  " + f)
-    else:
-        print(" [ OK ]\n")
 
 def writelines(fh, lines):
     for i in lines: fh.write(i + "\n")
@@ -273,11 +239,11 @@ buildset_specs = runs_and_mans(buildset_pkgs)
 buildset_top_matter = [
     "@comment $OpenBSD$",
     "@conflict teTeX_texmf-*",
-    "@conflict texlive_base-<2013",
-    "@conflict texlive_texmf-docs-<2013",
-    "@conflict texlive_texmf-minimal-<2013",
-    "@conflict texlive_texmf-full-<2013",
-    "@conflict texlive_texmf-context-<2013",
+    "@conflict texlive_base-<%s" % YEAR,
+    "@conflict texlive_texmf-docs-<%s" % YEAR,
+    "@conflict texlive_texmf-minimal-<%s" % YEAR,
+    "@conflict texlive_texmf-full-<%s" % YEAR,
+    "@conflict texlive_texmf-context-<%s" % YEAR,
     "@pkgpath print/texlive/texmf-minimal",
     "@pkgpath print/teTeX/texmf",
 ]
@@ -297,7 +263,6 @@ carry_forward_files = [ x for x in buildset_files if
 buildset_files = sorted(set(buildset_files) - set(carry_forward_files))
 
 write_plist(buildset_files, "PLIST-buildset", buildset_top_matter)
-#find_manuals_not_docfiles(buildset_pkgs)
 print("\n\n")
 
 # /-------------------------------------
@@ -347,11 +312,11 @@ print(">>> PLIST-context")
 context_top_matter = [
     "@comment $OpenBSD$",
     "@conflict teTeX_texmf-*",
-    "@conflict texlive_base-<2013",
-    "@conflict texlive_texmf-docs-<2013",
-    "@conflict texlive_texmf-full-<2013",
-    "@conflict texlive_texmf-buildset-<2013",
-    "@conflict texlive_texmf-minimal-<2013",
+    "@conflict texlive_base-<%s" % YEAR,
+    "@conflict texlive_texmf-docs-<%s" % YEAR,
+    "@conflict texlive_texmf-full-<%s" % YEAR,
+    "@conflict texlive_texmf-buildset-<%s" % YEAR,
+    "@conflict texlive_texmf-minimal-<%s" % YEAR,
 ]
 context_bottom_matter = [
     "@unexec rm -Rf %D/share/texmf-var/luatex-cache",
@@ -369,7 +334,6 @@ context_files = do_subset(
         )
 write_plist(context_files, "PLIST-context",
         context_top_matter, context_bottom_matter)
-#find_manuals_not_docfiles(context_pkgs)
 print("\n\n")
 
 # /----------------------------------------------------------
@@ -384,11 +348,11 @@ minimal_pkgs = ["scheme-tetex"]
 minimal_top_matter = [
     "@comment $OpenBSD$",
     "@conflict teTeX_texmf-*",
-    "@conflict texlive_base-<2013",
-    "@conflict texlive_texmf-docs-<2013",
-    "@conflict texlive_texmf-full-<2013",
-    "@conflict texlive_texmf-buildset-<2013",
-    "@conflict texlive_texmf-context-<2013",
+    "@conflict texlive_base-<%s" % YEAR,
+    "@conflict texlive_texmf-docs-<%s" % YEAR,
+    "@conflict texlive_texmf-full-<%s" % YEAR,
+    "@conflict texlive_texmf-buildset-<%s" % YEAR,
+    "@conflict texlive_texmf-context-<%s" % YEAR,
     "@pkgpath print/teTeX/texmf",
 ]
 minimal_bottom_matter = [
@@ -406,7 +370,6 @@ minimal_files = do_subset(
 minimal_files = sorted(minimal_files + carry_forward_files)
 write_plist(minimal_files, "PLIST-main",
         minimal_top_matter, minimal_bottom_matter)
-#find_manuals_not_docfiles(minimal_pkgs, buildset_pkgs + context_pkgs)
 print("\n\n")
 
 # /----------------------------------------------------------
@@ -420,11 +383,11 @@ full_pkgs = ["scheme-full"]
 full_top_matter = [
     "@comment $OpenBSD$",
     "@conflict teTeX_texmf-*",
-    "@conflict texlive_base-<2013",
-    "@conflict texlive_texmf-docs-<2013",
-    "@conflict texlive_texmf-minimal-<2013",
-    "@conflict texlive_texmf-buildset-<2013",
-    "@conflict texlive_texmf-contextt-<2013",
+    "@conflict texlive_base-<%s" % YEAR,
+    "@conflict texlive_texmf-docs-<%s" % YEAR,
+    "@conflict texlive_texmf-minimal-<%s" % YEAR,
+    "@conflict texlive_texmf-buildset-<%s" % YEAR,
+    "@conflict texlive_texmf-contextt-<%s" % YEAR,
     "@pkgpath print/texlive/texmf-full",
     "@pkgpath print/teTeX/texmf",
 ]
@@ -441,7 +404,6 @@ full_files = do_subset(
         dirs = False,
         )
 write_plist(full_files, "PLIST-full", full_top_matter, full_bottom_matter)
-#find_manuals_not_docfiles(full_pkgs, minimal_pkgs + buildset_pkgs + context_pkgs)
 print("\n\n")
 
 # /----------------------------------------------------------
@@ -458,11 +420,11 @@ doc_specs=["scheme-tetex:doc"]
 doc_top_matter = [
     "@comment $OpenBSD$",
     "@conflict teTeX_texmf-doc-*",
-    "@conflict texlive_base-<2013",
-    "@conflict texlive_texmf-minimal-<2013",
-    "@conflict texlive_texmf-full-<2013",
-    "@conflict texlive_texmf-buildset-<2013",
-    "@conflict texlive_texmf-context-<2013",
+    "@conflict texlive_base-<%s" % YEAR,
+    "@conflict texlive_texmf-minimal-<%s" % YEAR,
+    "@conflict texlive_texmf-full-<%s" % YEAR,
+    "@conflict texlive_texmf-buildset-<%s" % YEAR,
+    "@conflict texlive_texmf-context-<%s" % YEAR,
     "@pkgpath print/texlive/texmf-docs",
     "@pkgpath print/teTeX_texmf,-doc",
 ]
@@ -508,24 +470,5 @@ all_plists = ("PLIST-buildset", "PLIST-main", "PLIST-full",
     "PLIST-docs", "PLIST-context")
 for (l1, l2) in [ (x, y) for x in all_plists for y in all_plists if x < y ]:
     check_no_overlap(l1, l2)
-
-# Check the concatenation of the above plists is what we expect
-#print("Check everything included")
-#PDFMAN_REGEX="(?!texmf-dist\/doc\/man\/man[0-9]\/.*.man[0-9].pdf$)"
-#sanity_specs = ["scheme-full:run,doc"]
-#do_subset(
-#        inc_pkgspecs=sanity_specs,
-#        plist="PLIST-sanitycheck",
-#        regex=PDFMAN_REGEX,
-#        prefix_filenames="share/",
-#        )
-#
-#import sh
-#sh.sort(sh.cat(*all_plists), _out="PLIST-sanitycheck-actual")
-#
-# You can now diff the PLIST-sanitycheck against PLIST-sanitycheck-actual.
-# Only directory names should be duplicated. If you see PDF manuals in here
-# then they have probably been errorneously marked as runfiles instead of
-# docfiles. Check the tlpdb and report upstream.
 
 print("OK!")
