@@ -146,9 +146,10 @@ def relocate_mans_and_infos(filelist):
 def filter_junk(filelist):
     return [ x for x in filelist if
             # Windows junk
-            #not re.match(".*\.([Ee][Xx][Ee]|[Bb][Aa][Tt])$", x) and # XXX
-            not re.match(".*\.[Ee][Xx][Ee]$", x) and
+            not re.match(".*\.([Ee][Xx][Ee]|[Bb][Aa][Tt])$", x) and
             not re.match(".*/mswin/.*", x) and
+            # Context source code -- seriously?
+            not re.match("^share/texmf-dist/scripts/context/stubs/source/", x) and
             # PDF manuals
             not re.match("^.*.man[0-9]\.pdf$", x) and
             # We don't want anything that isn't in the texmf tree.
