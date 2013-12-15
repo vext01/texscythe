@@ -415,8 +415,8 @@ print("\n\n")
 # | All remaining docs
 # \----------------------------------------------------------
 
-# exclude manuals and dumb pdf manuals
-NO_MAN_INFO_PDFMAN_REGEX="(?!texmf-dist\/doc\/(man\/man[0-9]\/(.*[0-9]|.*.man[0-9].pdf)|info\/.*\.info)$)"
+# exclude manuals and info files
+NO_MAN_INFO_PDFMAN_REGEX="(?!texmf-dist\/doc\/(man\/man[0-9]\/.*[0-9]|info\/.*\.info)$)"
 
 print(">>> texlive_texmf-docs")
 doc_specs=["scheme-tetex:doc"]
