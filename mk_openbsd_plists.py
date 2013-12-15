@@ -83,6 +83,38 @@ TEXMF_VAR_FILES = [
     "share/texmf-var/web2c/xetex/xetex.fmt",
 ]
 
+# files that are in another openbsd package
+CONFLICT_FILES = [
+    "@man man/man1/bbox.1",
+    "@man man/man1/disdvi.1",
+    "@man man/man1/dvi2tty.1",
+    "@man man/man1/epsffit.1",
+    "@man man/man1/extractres.1",
+    "@man man/man1/fixwwps.1",
+    "@man man/man1/includeres.1",
+    "@man man/man1/ps2eps.1",
+    "@man man/man1/psbook.1",
+    "@man man/man1/psnup.1",
+    "@man man/man1/psresize.1",
+    "@man man/man1/psselect.1",
+    "@man man/man1/pstops.1",
+    "@man man/man1/t1ascii.1",
+    "@man man/man1/t1asm.1",
+    "@man man/man1/t1binary.1",
+    "@man man/man1/t1disasm.1",
+    "@man man/man1/t1mac.1",
+    "@man man/man1/t1unmac.1",
+]
+
+# Files that are missing due to a bug in the tlpdb
+BUG_MISSING_FILES = [
+    "share/texmf-dist/doc/latex/l3ctr2e/",
+    "share/texmf-dist/doc/latex/l3ctr2e/README",
+    "share/texmf-dist/doc/latex/l3ctr2e/l3ctr2e.pdf",
+    "share/texmf-dist/tex/latex/l3ctr2e/",
+    "share/texmf-dist/tex/latex/l3ctr2e/l3ctr2e.sty",
+]
+
 def remove_if_in_list(el, ls):
     if el in ls: ls.remove(el)
 
@@ -90,6 +122,7 @@ def relocate_mans_and_infos(filelist):
     filelist = filelist[:]
     remove_if_in_list("share/texmf-dist/doc/man/", filelist)
     remove_if_in_list("share/texmf-dist/doc/info/", filelist)
+    remove_if_in_list("share/texmf-dist/doc/info/dir", filelist)
     for i in range(1, 9):
         try:
             filelist.remove("share/texmf-dist/doc/man/man%s/" % i)
@@ -116,11 +149,16 @@ def filter_junk(filelist):
             #not re.match(".*\.([Ee][Xx][Ee]|[Bb][Aa][Tt])$", x) and # XXX
             not re.match(".*\.[Ee][Xx][Ee]$", x) and
             not re.match(".*/mswin/.*", x) and
+            # PDF manuals
+            not re.match("^.*.man[0-9]\.pdf$", x) and
             # We don't want anything that isn't in the texmf tree.
             # Most of this is installer stuff which does not apply
             # to us.
-            (x.startswith("share/texmf") or x.startswith("@"))
+            (x.startswith("share/texmf") or x.startswith("@")) and
             # TeXmf bugs XXX
+            not x in BUG_MISSING_FILES and
+            # Stuff provided by other ports
+            not x in CONFLICT_FILES
     ]
 
 class NastyError(Exception): pass
