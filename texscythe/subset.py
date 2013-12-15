@@ -78,6 +78,15 @@ def parse_subset_spec(spec):
 
     return FileSpec(pkgname, filetypes, regex, no_depends)
 
+# Adds directory entries for a file
+def dir_entries(path, exclude=[]):
+    dirs = []
+    while path != "":
+        path = os.path.dirname(path)
+        if path != "" and path not in exclude:
+            dirs.append(path + os.path.sep)
+    return dirs
+
 def compute_subset(cfg, sess = None):
     # parse the pkgspecs
     include_specs = [ parse_subset_spec(s) for s in cfg.inc_pkgspecs ]
@@ -99,17 +108,17 @@ def compute_subset(cfg, sess = None):
     subset = include_files - exclude_files
     if not cfg.quiet: sys.stderr.write("Done\n")
 
-    def get_required_dirs(path):
-        dirs = []
-        while path != "":
-            path = os.path.dirname(path)
-            if path != "": dirs.append(path + os.path.sep)
-        return dirs
+    #def get_required_dirs(path):
+    #    dirs = []
+    #    while path != "":
+    #        path = os.path.dirname(path)
+    #        if path != "": dirs.append(path + os.path.sep)
+    #    return dirs
 
     if cfg.dirs:
         if not cfg.quiet: sys.stderr.write("Adding directory lines...")
         dirs = set()
-        for line in subset: dirs |= set(get_required_dirs(line))
+        for line in subset: dirs |= set(dir_entries(line))
 
         subset |= dirs
         if not cfg.quiet: sys.stderr.write("Done\n")

@@ -1,7 +1,6 @@
 #!/usr/bin/env python2.7
 #
-# This is how we generate (a basis for) the OpenBSD packing lists
-# for TeX Live.
+# This is how we generate the OpenBSD packing lists for TeX Live.
 
 import os, sys, re
 from texscythe import config, subset
@@ -115,6 +114,29 @@ BUG_MISSING_FILES = [
     "share/texmf-dist/tex/latex/l3ctr2e/l3ctr2e.sty",
 ]
 
+# Don't need to add dir entries for these
+# Note these must not be slash suffixed
+EXISTING_DIRS = [ "share", "info", "man" ] + \
+        [ "man/man%d" % i for i in range(1, 9) ] + \
+        [ "man3f", "man3p" ]
+def add_dir_entries(files):
+    print("Adding dirs...")
+    nfiles = []
+    for f in files:
+        nfiles.append(f)
+
+        # special handling of manuals and info
+        if f.startswith("@man") or f.startswith("@info"):
+            elems = f.split()
+            assert len(elems) == 2
+            f = elems[1]
+
+        dirs = subset.dir_entries(f, EXISTING_DIRS)
+        # This would use less memory but is quadratic
+        #nfiles = list(set(nfiles + dirs))
+        nfiles += dirs
+    return sorted(set(nfiles)) # set deduplicates
+
 def remove_if_in_list(el, ls):
     if el in ls: ls.remove(el)
 
@@ -134,12 +156,12 @@ def relocate_mans_and_infos(filelist):
 
     # look for any remaining files in share/texmf-dist/doc
     # if there are none, then remove the doc dir entry
-    found = False
-    for i in filelist:
-        if re.match("^share/texmf-dist/doc/.+$", i):
-            found = True
-            break
-    if not found: filelist.remove("share/texmf-dist/doc/")
+    #found = False
+    #for i in filelist:
+    #    if re.match("^share/texmf-dist/doc/.+$", i):
+    #        found = True
+    #        break
+    #if not found: filelist.remove("share/texmf-dist/doc/")
 
     return filelist
 
@@ -206,6 +228,7 @@ def writelines(fh, lines):
     for i in lines: fh.write(i + "\n")
 
 def write_plist(files, filename, top_matter=[], bottom_matter=[]):
+    files = add_dir_entries(files)
     with open(filename, "w") as fh:
         writelines(fh, top_matter)
         writelines(fh, files)
@@ -262,7 +285,8 @@ buildset_files = do_subset(
         inc_pkgspecs=buildset_specs,
         exc_pkgspecs=never_pkgs,
         plist = None,
-        prefix_filenames="share/"
+        prefix_filenames="share/",
+        dirs = False,
         )
 buildset_files = sorted(buildset_files + TEXMF_VAR_FILES)
 
@@ -340,7 +364,8 @@ context_files = do_subset(
         inc_pkgspecs=context_specs,
         exc_pkgspecs=never_pkgs,
         plist=None,
-        prefix_filenames="share/"
+        prefix_filenames="share/",
+        dirs = False,
         )
 write_plist(context_files, "PLIST-context",
         context_top_matter, context_bottom_matter)
@@ -376,6 +401,7 @@ minimal_files = do_subset(
         exc_pkgspecs=buildset_pkgs + context_pkgs + never_pkgs,
         plist=None,
         prefix_filenames="share/",
+        dirs = False,
         )
 minimal_files = sorted(minimal_files + carry_forward_files)
 write_plist(minimal_files, "PLIST-main",
@@ -412,6 +438,7 @@ full_files = do_subset(
         exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs + never_pkgs,
         plist=None,
         prefix_filenames="share/",
+        dirs = False,
         )
 write_plist(full_files, "PLIST-full", full_top_matter, full_bottom_matter)
 #find_manuals_not_docfiles(full_pkgs, minimal_pkgs + buildset_pkgs + context_pkgs)
@@ -449,6 +476,7 @@ doc_files = do_subset(
         plist=None,
         regex=NO_MAN_INFO_PDFMAN_REGEX,
         prefix_filenames="share/",
+        dirs = False,
         )
 write_plist(doc_files, "PLIST-docs", doc_top_matter, doc_bottom_matter)
 print("\n\n")
