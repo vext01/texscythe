@@ -86,27 +86,32 @@ TEXMF_VAR_FILES = [
     "share/texmf-var/web2c/xetex/xetex.fmt",
 ]
 
-# files that are in another openbsd package
 CONFLICT_FILES = [
+    # Comes from print/ps2eps.
+    # ps2eps is included in a larger texlive package called pstools, so it
+    # cannot be excluded by package. We disable this in the base build at
+    # configure time.
     "@man man/man1/bbox.1",
     "@man man/man1/disdvi.1",
-    "@man man/man1/dvi2tty.1",
-    "@man man/man1/epsffit.1",
-    "@man man/man1/extractres.1",
-    "@man man/man1/fixwwps.1",
-    "@man man/man1/includeres.1",
+    # Tex Live's psutils includes some other stuff. Namely it includes
+    # a bunch of perl scripts.
+    "@man man/man1/epsffit.1", #
+    "@man man/man1/extractres.1", #
+    #"@man man/man1/fixwwps.1",
+    "@man man/man1/includeres.1", #
     "@man man/man1/ps2eps.1",
-    "@man man/man1/psbook.1",
-    "@man man/man1/psnup.1",
-    "@man man/man1/psresize.1",
-    "@man man/man1/psselect.1",
-    "@man man/man1/pstops.1",
-    "@man man/man1/t1ascii.1",
-    "@man man/man1/t1asm.1",
-    "@man man/man1/t1binary.1",
-    "@man man/man1/t1disasm.1",
-    "@man man/man1/t1mac.1",
-    "@man man/man1/t1unmac.1",
+    "@man man/man1/psbook.1", #
+    "@man man/man1/psnup.1", #
+    "@man man/man1/psresize.1", #
+    "@man man/man1/psselect.1", #
+    "@man man/man1/pstops.1", #
+
+#    "@man man/man1/t1ascii.1",
+#    "@man man/man1/t1asm.1",
+#    "@man man/man1/t1binary.1",
+#    "@man man/man1/t1disasm.1",
+#    "@man man/man1/t1mac.1",
+#    "@man man/man1/t1unmac.1",
 ]
 
 # Files that are missing due to a bug in the tlpdb
@@ -146,7 +151,6 @@ def remove_if_in_list(el, ls):
 
 def relocate_mans_and_infos(filelist):
     filelist = filelist[:]
-
     remove_if_in_list("share/texmf-dist/doc/info/dir", filelist)
     return [ re.sub("^share/texmf-dist/doc/(man|info)/", "@\g<1> \g<1>/", i)
             for i in filelist ]
@@ -201,7 +205,7 @@ def write_plist(files, filename, top_matter=[], bottom_matter=[]):
         writelines(fh, bottom_matter)
 
 # Stuff which is ported separately from texlive in OpenBSD
-never_pkgs = ["asymptote", "latexmk", "texworks"]
+NEVER_PKGS = ["asymptote", "latexmk", "texworks", "t1utils", "dvi2tty"]
 
 # /-------------------------------------
 # | BUILDSET
@@ -249,7 +253,7 @@ buildset_top_matter = [
 ]
 buildset_files = do_subset(
         inc_pkgspecs=buildset_specs,
-        exc_pkgspecs=never_pkgs,
+        exc_pkgspecs=NEVER_PKGS,
         plist = None,
         prefix_filenames="share/",
         dirs = False,
@@ -327,7 +331,7 @@ context_bottom_matter = [
 context_specs = runs_and_mans(context_pkgs)
 context_files = do_subset(
         inc_pkgspecs=context_specs,
-        exc_pkgspecs=never_pkgs,
+        exc_pkgspecs=NEVER_PKGS,
         plist=None,
         prefix_filenames="share/",
         dirs = False,
@@ -362,7 +366,7 @@ minimal_bottom_matter = [
 minimal_specs = runs_and_mans(minimal_pkgs)
 minimal_files = do_subset(
         inc_pkgspecs=minimal_specs,
-        exc_pkgspecs=buildset_pkgs + context_pkgs + never_pkgs,
+        exc_pkgspecs=buildset_pkgs + context_pkgs + NEVER_PKGS,
         plist=None,
         prefix_filenames="share/",
         dirs = False,
@@ -398,7 +402,7 @@ full_bottom_matter = [
 full_specs = runs_and_mans(full_pkgs)
 full_files = do_subset(
         inc_pkgspecs=full_specs,
-        exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs + never_pkgs,
+        exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs + NEVER_PKGS,
         plist=None,
         prefix_filenames="share/",
         dirs = False,
@@ -434,7 +438,7 @@ doc_bottom_matter = [
 ]
 doc_files = do_subset(
         inc_pkgspecs=doc_specs,
-        exc_pkgspecs=never_pkgs,
+        exc_pkgspecs=NEVER_PKGS,
         plist=None,
         regex=NO_MAN_INFO_PDFMAN_REGEX,
         prefix_filenames="share/",
