@@ -184,37 +184,13 @@ def do_subset(**kwargs):
     files = filter_junk(files)
     return sorted(files)
 
-# Collect runfiles and manuals of a packages
-# <XXX can tighten this up -- duplication>
 MAN_INFO_REGEX="texmf-dist\/doc\/(man\/man[0-9]\/.*[0-9]|info\/.*\.info)$"
-def runs_and_mans_single(pkg):
-    return [("{0}:run".format(pkg)), "{0}:doc:{1}".format(pkg, MAN_INFO_REGEX)]
-
-def manspecs_single(pkg):
-    return ["{0}:doc:{1}".format(pkg, MAN_INFO_REGEX)]
-
-def runspecs_single(pkg):
-    return ["{0}:run".format(pkg)]
-
-# Collect runfiles and manuals of a list of packages
-def runs_and_mans(pkglist):
-    specs = []
-    for pkg in pkglist:
-        specs.extend(runs_and_mans_single(pkg))
-    return specs
 
 def manspecs(pkglist):
-    specs = []
-    for pkg in pkglist:
-        specs.extend(manspecs_single(pkg))
-    return specs
+    return [ "%s:doc:%s" % (pkg, MAN_INFO_REGEX) for pkg in pkglist ]
 
 def runspecs(pkglist):
-    specs = []
-    for pkg in pkglist:
-        specs.extend(runspecs_single(pkg))
-    return specs
-# </XXX>
+    return [ "%s:run" % pkg for pkg in pkglist ]
 
 def writelines(fh, lines):
     for i in lines: fh.write(i + "\n")
@@ -350,7 +326,8 @@ context_bottom_matter = [
     "@exec %D/bin/mktexlsr > /dev/null 2>&1",
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
-context_specs = runs_and_mans(context_pkgs)
+#context_specs = runs_and_mans(context_pkgs)
+context_specs = runspecs(context_pkgs) + manspecs(context_pkgs)
 context_files = do_subset(
         inc_pkgspecs=context_specs,
         exc_pkgspecs=NEVER_PKGS,
@@ -385,8 +362,10 @@ minimal_bottom_matter = [
     "@exec %D/bin/mktexlsr > /dev/null 2>&1",
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
-# we carry forward the buildset manuals here
-minimal_specs = runs_and_mans(minimal_pkgs) + manspecs(buildset_pkgs)
+#minimal_specs = runs_and_mans(minimal_pkgs) + manspecs(buildset_pkgs)
+minimal_specs = runspecs(minimal_pkgs) + \
+                manspecs(minimal_pkgs) + \
+                manspecs(buildset_pkgs) # carry forward buildset manuals
 minimal_files = do_subset(
         inc_pkgspecs=minimal_specs,
         exc_pkgspecs=buildset_pkgs + context_pkgs + NEVER_PKGS,
@@ -422,7 +401,8 @@ full_bottom_matter = [
     "@exec %D/bin/mktexlsr > /dev/null 2>&1",
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
-full_specs = runs_and_mans(full_pkgs)
+#full_specs = runs_and_mans(full_pkgs)
+full_specs = runspecs(full_pkgs) + manspecs(full_pkgs)
 full_files = do_subset(
         inc_pkgspecs=full_specs,
         exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs + NEVER_PKGS,
