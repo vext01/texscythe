@@ -326,7 +326,6 @@ context_bottom_matter = [
     "@exec %D/bin/mktexlsr > /dev/null 2>&1",
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
-#context_specs = runs_and_mans(context_pkgs)
 context_specs = runspecs(context_pkgs) + manspecs(context_pkgs)
 context_files = do_subset(
         inc_pkgspecs=context_specs,
@@ -362,7 +361,6 @@ minimal_bottom_matter = [
     "@exec %D/bin/mktexlsr > /dev/null 2>&1",
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
-#minimal_specs = runs_and_mans(minimal_pkgs) + manspecs(buildset_pkgs)
 minimal_specs = runspecs(minimal_pkgs) + \
                 manspecs(minimal_pkgs) + \
                 manspecs(buildset_pkgs) # carry forward buildset manuals
@@ -401,7 +399,6 @@ full_bottom_matter = [
     "@exec %D/bin/mktexlsr > /dev/null 2>&1",
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
-#full_specs = runs_and_mans(full_pkgs)
 full_specs = runspecs(full_pkgs) + manspecs(full_pkgs)
 full_files = do_subset(
         inc_pkgspecs=full_specs,
