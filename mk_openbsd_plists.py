@@ -2,6 +2,8 @@
 #
 # This is how we generate the OpenBSD packing lists for TeX Live.
 
+# XXX speed up by using the existing file lists to subtract.
+
 import os, sys, re
 from texscythe import config, subset
 
@@ -183,9 +185,16 @@ def do_subset(**kwargs):
     return sorted(files)
 
 # Collect runfiles and manuals of a packages
+# <XXX can tighten this up -- duplication>
 MAN_INFO_REGEX="texmf-dist\/doc\/(man\/man[0-9]\/.*[0-9]|info\/.*\.info)$"
 def runs_and_mans_single(pkg):
     return [("{0}:run".format(pkg)), "{0}:doc:{1}".format(pkg, MAN_INFO_REGEX)]
+
+def manspecs_single(pkg):
+    return ["{0}:doc:{1}".format(pkg, MAN_INFO_REGEX)]
+
+def runspecs_single(pkg):
+    return ["{0}:run".format(pkg)]
 
 # Collect runfiles and manuals of a list of packages
 def runs_and_mans(pkglist):
@@ -193,6 +202,19 @@ def runs_and_mans(pkglist):
     for pkg in pkglist:
         specs.extend(runs_and_mans_single(pkg))
     return specs
+
+def manspecs(pkglist):
+    specs = []
+    for pkg in pkglist:
+        specs.extend(manspecs_single(pkg))
+    return specs
+
+def runspecs(pkglist):
+    specs = []
+    for pkg in pkglist:
+        specs.extend(runspecs_single(pkg))
+    return specs
+# </XXX>
 
 def writelines(fh, lines):
     for i in lines: fh.write(i + "\n")
@@ -230,8 +252,8 @@ buildset_pkgs = [
     # gnusetp/dbuskit, graphics/asymptote
     "cm-super",
     # lang/ghc,-docs
-    "zapfding", "symbol", "url", "eepic", "courier",
-    "times", "helvetic", "rsfs",
+    #"zapfding", "symbol", "url", "eepic", "courier",
+    #"times", "helvetic", "rsfs",
     # devel/darcs
     "preprint",
     # print/lilypond (indirect via fonts/mftrace)
@@ -239,7 +261,7 @@ buildset_pkgs = [
     ]
 
 print(">>> texlive_texmf-buildset")
-buildset_specs = runs_and_mans(buildset_pkgs)
+buildset_specs = runspecs(buildset_pkgs) # note, no manuals
 buildset_top_matter = [
     "@comment $OpenBSD$",
     "@conflict teTeX_texmf-*",
@@ -262,9 +284,9 @@ buildset_files = sorted(buildset_files + TEXMF_VAR_FILES)
 
 # Surpress dvips files and manuals/infos from the buildset
 # we carry these forward to minimal texmf.
-carry_forward_files = [ x for x in buildset_files if
-    "dvips" in x or x.startswith("@man") or x.startswith("@info") ]
-buildset_files = sorted(set(buildset_files) - set(carry_forward_files))
+#carry_forward_files = [ x for x in buildset_files if
+#    "dvips" in x or x.startswith("@man") or x.startswith("@info") ]
+#buildset_files = sorted(set(buildset_files) - set(carry_forward_files))
 
 write_plist(buildset_files, "PLIST-buildset", buildset_top_matter)
 print("\n\n")
@@ -363,7 +385,8 @@ minimal_bottom_matter = [
     "@exec %D/bin/mktexlsr > /dev/null 2>&1",
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
-minimal_specs = runs_and_mans(minimal_pkgs)
+# we carry forward the buildset manuals here
+minimal_specs = runs_and_mans(minimal_pkgs) + manspecs(buildset_pkgs)
 minimal_files = do_subset(
         inc_pkgspecs=minimal_specs,
         exc_pkgspecs=buildset_pkgs + context_pkgs + NEVER_PKGS,
@@ -371,7 +394,7 @@ minimal_files = do_subset(
         prefix_filenames="share/",
         dirs = False,
         )
-minimal_files = sorted(minimal_files + carry_forward_files)
+#minimal_files = sorted(minimal_files + carry_forward_files)
 write_plist(minimal_files, "PLIST-main",
         minimal_top_matter, minimal_bottom_matter)
 print("\n\n")
