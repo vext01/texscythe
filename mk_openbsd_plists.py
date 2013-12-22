@@ -176,13 +176,34 @@ def filter_junk(filelist):
             not x in CONFLICT_FILES
     ]
 
-def do_subset(**kwargs):
-    assert kwargs['plist'] is None
-    cfg = config.Config(**kwargs)
+#def do_subset(**kwargs):
+#    assert kwargs['plist'] is None
+#    cfg = config.Config(**kwargs)
+#    files = subset.compute_subset(cfg)
+#    files = relocate_mans_and_infos(files)
+#    files = filter_junk(files)
+#    return sorted(files)
+
+def collect_files(specs, regex=None):
+    cfg = config.Config(
+            inc_pkgspecs=specs,
+            plist=None, # return file list
+            #exc_pkgspecs=NEVER_PKGS,
+            prefix_filenames="share/",
+            dirs=False, # Do this manually as we will filter the list
+            regex=regex,
+    )
     files = subset.compute_subset(cfg)
     files = relocate_mans_and_infos(files)
     files = filter_junk(files)
     return sorted(files)
+
+
+    #inc_pkgspecs=buildset_specs,
+    #exc_pkgspecs=NEVER_PKGS,
+    #plist = None,
+    #prefix_filenames="share/",
+    #dirs = False,
 
 MAN_INFO_REGEX="texmf-dist\/doc\/(man\/man[0-9]\/.*[0-9]|info\/.*\.info)$"
 
@@ -195,6 +216,9 @@ def runspecs(pkglist):
 def writelines(fh, lines):
     for i in lines: fh.write(i + "\n")
 
+def list_subtract(l, rm):
+    return list(set(l).difference(set(rm)))
+
 def write_plist(files, filename, top_matter=[], bottom_matter=[]):
     files = add_dir_entries(files)
     with open(filename, "w") as fh:
@@ -202,8 +226,16 @@ def write_plist(files, filename, top_matter=[], bottom_matter=[]):
         writelines(fh, files)
         writelines(fh, bottom_matter)
 
+# /-------------------------------------
+# | NEVERSET
+# +-------------------------------------
+# | Packages we never want
+# \-------------------------------------
+
 # Stuff which is ported separately from texlive in OpenBSD
-NEVER_PKGS = ["asymptote", "latexmk", "texworks", "t1utils", "dvi2tty"]
+print(">>> neverset")
+never_pkgs = ["asymptote", "latexmk", "texworks", "t1utils", "dvi2tty"]
+never_files = collect_files(never_pkgs)
 
 # /-------------------------------------
 # | BUILDSET
@@ -249,13 +281,14 @@ buildset_top_matter = [
     "@pkgpath print/texlive/texmf-minimal",
     "@pkgpath print/teTeX/texmf",
 ]
-buildset_files = do_subset(
-        inc_pkgspecs=buildset_specs,
-        exc_pkgspecs=NEVER_PKGS,
-        plist = None,
-        prefix_filenames="share/",
-        dirs = False,
-        )
+#buildset_files = do_subset(
+#        inc_pkgspecs=buildset_specs,
+#        exc_pkgspecs=NEVER_PKGS,
+#        plist = None,
+#        prefix_filenames="share/",
+#        dirs = False,
+#        )
+buildset_files = list_subtract(collect_files(buildset_specs), never_files)
 buildset_files = sorted(buildset_files + TEXMF_VAR_FILES)
 
 # Surpress dvips files and manuals/infos from the buildset
@@ -327,13 +360,14 @@ context_bottom_matter = [
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
 context_specs = runspecs(context_pkgs) + manspecs(context_pkgs)
-context_files = do_subset(
-        inc_pkgspecs=context_specs,
-        exc_pkgspecs=NEVER_PKGS,
-        plist=None,
-        prefix_filenames="share/",
-        dirs = False,
-        )
+#context_files = do_subset(
+#        inc_pkgspecs=context_specs,
+#        exc_pkgspecs=NEVER_PKGS,
+#        plist=None,
+#        prefix_filenames="share/",
+#        dirs = False,
+#        )
+context_files = list_subtract(collect_files(context_specs), never_files)
 write_plist(context_files, "PLIST-context",
         context_top_matter, context_bottom_matter)
 print("\n\n")
@@ -364,13 +398,14 @@ minimal_bottom_matter = [
 minimal_specs = runspecs(minimal_pkgs) + \
                 manspecs(minimal_pkgs) + \
                 manspecs(buildset_pkgs) # carry forward buildset manuals
-minimal_files = do_subset(
-        inc_pkgspecs=minimal_specs,
-        exc_pkgspecs=buildset_pkgs + context_pkgs + NEVER_PKGS,
-        plist=None,
-        prefix_filenames="share/",
-        dirs = False,
-        )
+#minimal_files = do_subset(
+#        inc_pkgspecs=minimal_specs,
+#        exc_pkgspecs=buildset_pkgs + context_pkgs + NEVER_PKGS,
+#        plist=None,
+#        prefix_filenames="share/",
+#        dirs = False,
+#        )
+minimal_files = list_subtract(collect_files(minimal_specs), buildset_files + context_files + never_files)
 #minimal_files = sorted(minimal_files + carry_forward_files)
 write_plist(minimal_files, "PLIST-main",
         minimal_top_matter, minimal_bottom_matter)
@@ -400,13 +435,14 @@ full_bottom_matter = [
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
 full_specs = runspecs(full_pkgs) + manspecs(full_pkgs)
-full_files = do_subset(
-        inc_pkgspecs=full_specs,
-        exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs + NEVER_PKGS,
-        plist=None,
-        prefix_filenames="share/",
-        dirs = False,
-        )
+#full_files = do_subset(
+#        inc_pkgspecs=full_specs,
+#        exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs + NEVER_PKGS,
+#        plist=None,
+#        prefix_filenames="share/",
+#        dirs = False,
+#        )
+full_files = list_subtract(collect_files(full_specs), minimal_files + buildset_files + context_files + never_files)
 write_plist(full_files, "PLIST-full", full_top_matter, full_bottom_matter)
 print("\n\n")
 
@@ -436,14 +472,15 @@ doc_bottom_matter = [
     "@exec %D/bin/mktexlsr > /dev/null 2>&1",
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
-doc_files = do_subset(
-        inc_pkgspecs=doc_specs,
-        exc_pkgspecs=NEVER_PKGS,
-        plist=None,
-        regex=NO_MAN_INFO_PDFMAN_REGEX,
-        prefix_filenames="share/",
-        dirs = False,
-        )
+#doc_files = do_subset(
+#        inc_pkgspecs=doc_specs,
+#        exc_pkgspecs=NEVER_PKGS,
+#        plist=None,
+#        regex=NO_MAN_INFO_PDFMAN_REGEX,
+#        prefix_filenames="share/",
+#        dirs = False,
+#        )
+doc_files = list_subtract(collect_files(doc_specs, NO_MAN_INFO_PDFMAN_REGEX), never_files)
 write_plist(doc_files, "PLIST-docs", doc_top_matter, doc_bottom_matter)
 print("\n\n")
 
@@ -466,8 +503,8 @@ def check_no_overlap(list1, list2):
     set1 = read_plist_back(list1)
     set2 = read_plist_back(list2)
 
-    if set1.intersection(set2):
-        raise NastyError("Overlapping packing lists:\n%s" % diff)
+    diff = set1.intersection(set2)
+    if diff: raise NastyError("Overlapping packing lists:\n%s" % diff)
 
 # check each PLIST against each other for overlap
 all_plists = ("PLIST-buildset", "PLIST-main", "PLIST-full",
