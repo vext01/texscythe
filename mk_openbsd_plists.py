@@ -218,8 +218,9 @@ never_files = collect_files(never_pkgs)
 # | A minimal subset for building ports.
 # \-------------------------------------
 buildset_pkgs = [
+    # Barebones of a working latex system
 	"scheme-basic",
-	# dblatex
+	# textproc/dblatex
     "anysize", "appendix", "changebar",
     "fancyvrb", "float", "footmisc",
     "jknapltx", "multirow", "overpic",
@@ -235,7 +236,7 @@ buildset_pkgs = [
     # gnusetp/dbuskit, graphics/asymptote
     "cm-super",
     # devel/darcs
-    "preprint",
+    "preprint", "url",
     # print/lilypond (indirect via fonts/mftrace)
     "metapost",
     ]
