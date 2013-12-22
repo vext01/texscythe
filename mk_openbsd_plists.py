@@ -2,8 +2,6 @@
 #
 # This is how we generate the OpenBSD packing lists for TeX Live.
 
-# XXX speed up by using the existing file lists to subtract.
-
 import os, sys, re
 from texscythe import config, subset
 
@@ -107,13 +105,6 @@ CONFLICT_FILES = [
     "@man man/man1/psresize.1", #
     "@man man/man1/psselect.1", #
     "@man man/man1/pstops.1", #
-
-#    "@man man/man1/t1ascii.1",
-#    "@man man/man1/t1asm.1",
-#    "@man man/man1/t1binary.1",
-#    "@man man/man1/t1disasm.1",
-#    "@man man/man1/t1mac.1",
-#    "@man man/man1/t1unmac.1",
 ]
 
 # Files that are missing due to a bug in the tlpdb
@@ -176,19 +167,10 @@ def filter_junk(filelist):
             not x in CONFLICT_FILES
     ]
 
-#def do_subset(**kwargs):
-#    assert kwargs['plist'] is None
-#    cfg = config.Config(**kwargs)
-#    files = subset.compute_subset(cfg)
-#    files = relocate_mans_and_infos(files)
-#    files = filter_junk(files)
-#    return sorted(files)
-
 def collect_files(specs, regex=None):
     cfg = config.Config(
             inc_pkgspecs=specs,
             plist=None, # return file list
-            #exc_pkgspecs=NEVER_PKGS,
             prefix_filenames="share/",
             dirs=False, # Do this manually as we will filter the list
             regex=regex,
@@ -197,13 +179,6 @@ def collect_files(specs, regex=None):
     files = relocate_mans_and_infos(files)
     files = filter_junk(files)
     return sorted(files)
-
-
-    #inc_pkgspecs=buildset_specs,
-    #exc_pkgspecs=NEVER_PKGS,
-    #plist = None,
-    #prefix_filenames="share/",
-    #dirs = False,
 
 MAN_INFO_REGEX="texmf-dist\/doc\/(man\/man[0-9]\/.*[0-9]|info\/.*\.info)$"
 
@@ -259,9 +234,6 @@ buildset_pkgs = [
     "epsf", "parskip",
     # gnusetp/dbuskit, graphics/asymptote
     "cm-super",
-    # lang/ghc,-docs
-    #"zapfding", "symbol", "url", "eepic", "courier",
-    #"times", "helvetic", "rsfs",
     # devel/darcs
     "preprint",
     # print/lilypond (indirect via fonts/mftrace)
@@ -281,22 +253,8 @@ buildset_top_matter = [
     "@pkgpath print/texlive/texmf-minimal",
     "@pkgpath print/teTeX/texmf",
 ]
-#buildset_files = do_subset(
-#        inc_pkgspecs=buildset_specs,
-#        exc_pkgspecs=NEVER_PKGS,
-#        plist = None,
-#        prefix_filenames="share/",
-#        dirs = False,
-#        )
 buildset_files = list_subtract(collect_files(buildset_specs), never_files)
 buildset_files = sorted(buildset_files + TEXMF_VAR_FILES)
-
-# Surpress dvips files and manuals/infos from the buildset
-# we carry these forward to minimal texmf.
-#carry_forward_files = [ x for x in buildset_files if
-#    "dvips" in x or x.startswith("@man") or x.startswith("@info") ]
-#buildset_files = sorted(set(buildset_files) - set(carry_forward_files))
-
 write_plist(buildset_files, "PLIST-buildset", buildset_top_matter)
 print("\n\n")
 
@@ -360,13 +318,6 @@ context_bottom_matter = [
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
 context_specs = runspecs(context_pkgs) + manspecs(context_pkgs)
-#context_files = do_subset(
-#        inc_pkgspecs=context_specs,
-#        exc_pkgspecs=NEVER_PKGS,
-#        plist=None,
-#        prefix_filenames="share/",
-#        dirs = False,
-#        )
 context_files = list_subtract(collect_files(context_specs), never_files)
 write_plist(context_files, "PLIST-context",
         context_top_matter, context_bottom_matter)
@@ -398,13 +349,6 @@ minimal_bottom_matter = [
 minimal_specs = runspecs(minimal_pkgs) + \
                 manspecs(minimal_pkgs) + \
                 manspecs(buildset_pkgs) # carry forward buildset manuals
-#minimal_files = do_subset(
-#        inc_pkgspecs=minimal_specs,
-#        exc_pkgspecs=buildset_pkgs + context_pkgs + NEVER_PKGS,
-#        plist=None,
-#        prefix_filenames="share/",
-#        dirs = False,
-#        )
 minimal_files = list_subtract(collect_files(minimal_specs), buildset_files + context_files + never_files)
 #minimal_files = sorted(minimal_files + carry_forward_files)
 write_plist(minimal_files, "PLIST-main",
@@ -435,13 +379,6 @@ full_bottom_matter = [
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
 full_specs = runspecs(full_pkgs) + manspecs(full_pkgs)
-#full_files = do_subset(
-#        inc_pkgspecs=full_specs,
-#        exc_pkgspecs=minimal_pkgs + buildset_pkgs + context_pkgs + NEVER_PKGS,
-#        plist=None,
-#        prefix_filenames="share/",
-#        dirs = False,
-#        )
 full_files = list_subtract(collect_files(full_specs), minimal_files + buildset_files + context_files + never_files)
 write_plist(full_files, "PLIST-full", full_top_matter, full_bottom_matter)
 print("\n\n")
@@ -472,14 +409,6 @@ doc_bottom_matter = [
     "@exec %D/bin/mktexlsr > /dev/null 2>&1",
     "@unexec-delete %D/bin/mktexlsr > /dev/null 2>&1",
 ]
-#doc_files = do_subset(
-#        inc_pkgspecs=doc_specs,
-#        exc_pkgspecs=NEVER_PKGS,
-#        plist=None,
-#        regex=NO_MAN_INFO_PDFMAN_REGEX,
-#        prefix_filenames="share/",
-#        dirs = False,
-#        )
 doc_files = list_subtract(collect_files(doc_specs, NO_MAN_INFO_PDFMAN_REGEX), never_files)
 write_plist(doc_files, "PLIST-docs", doc_top_matter, doc_bottom_matter)
 print("\n\n")
