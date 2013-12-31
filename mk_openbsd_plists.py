@@ -255,8 +255,6 @@ buildset_top_matter = [
     "@pkgpath print/teTeX/texmf",
 ]
 buildset_files = list_subtract(collect_files(buildset_specs), never_files)
-# Scaffold directory for third party texmf stuff
-buildset_files += ["share/texmf/"]
 buildset_files = sorted(buildset_files + TEXMF_VAR_FILES)
 write_plist(buildset_files, "PLIST-buildset", buildset_top_matter)
 print("\n\n")
