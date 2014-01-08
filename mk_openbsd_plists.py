@@ -209,7 +209,7 @@ def write_plist(files, filename, top_matter=[], bottom_matter=[]):
 
 # Stuff which is ported separately from texlive in OpenBSD
 print(">>> neverset")
-never_pkgs = ["asymptote", "latexmk", "texworks", "t1utils", "dvi2tty"]
+never_pkgs = ["asymptote", "latexmk", "texworks", "t1utils", "dvi2tty", "detex"]
 never_files = collect_files(never_pkgs)
 
 # /-------------------------------------
