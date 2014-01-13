@@ -239,6 +239,8 @@ buildset_pkgs = [
     "preprint", "url",
     # print/lilypond (indirect via fonts/mftrace)
     "metapost",
+    # www/yaws
+    "times", "courier",
     ]
 
 print(">>> texlive_texmf-buildset")
