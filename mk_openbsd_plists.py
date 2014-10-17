@@ -7,12 +7,11 @@ from texscythe import config, subset
 
 class NastyError(Exception): pass
 
-YEAR = 2013
+YEAR = 2014
 
 # Files from our preenerated 'texmf-var' tarball.
 # This may change from year to year.
 TEXMF_VAR_FILES = [
-    "share/texmf-var/",
     "share/texmf-var/fonts/",
     "share/texmf-var/fonts/map/",
     "share/texmf-var/fonts/map/dvipdfmx/",
@@ -23,16 +22,12 @@ TEXMF_VAR_FILES = [
     "share/texmf-var/fonts/map/dvips/updmap/builtin35.map",
     "share/texmf-var/fonts/map/dvips/updmap/download35.map",
     "share/texmf-var/fonts/map/dvips/updmap/ps2pk.map",
-    "share/texmf-var/fonts/map/dvips/updmap/psfonts.map",
     "share/texmf-var/fonts/map/dvips/updmap/psfonts_pk.map",
     "share/texmf-var/fonts/map/dvips/updmap/psfonts_t1.map",
     "share/texmf-var/fonts/map/pdftex/",
     "share/texmf-var/fonts/map/pdftex/updmap/",
-    "share/texmf-var/fonts/map/pdftex/updmap/pdftex.map",
     "share/texmf-var/fonts/map/pdftex/updmap/pdftex_dl14.map",
     "share/texmf-var/fonts/map/pdftex/updmap/pdftex_ndl14.map",
-    "share/texmf-var/fonts/map/pxdvi/",
-    "share/texmf-var/fonts/map/pxdvi/updmap/",
     "share/texmf-var/web2c/",
     "share/texmf-var/web2c/aleph/",
     "share/texmf-var/web2c/aleph/aleph.fmt",
@@ -43,11 +38,14 @@ TEXMF_VAR_FILES = [
     "share/texmf-var/web2c/euptex/",
     "share/texmf-var/web2c/euptex/euptex.fmt",
     "share/texmf-var/web2c/euptex/uplatex.fmt",
+    "share/texmf-var/web2c/luajittex/",
     "share/texmf-var/web2c/luatex/",
     "share/texmf-var/web2c/luatex/dvilualatex.fmt",
     "share/texmf-var/web2c/luatex/dviluatex.fmt",
     "share/texmf-var/web2c/luatex/lualatex.fmt",
+    "share/texmf-var/web2c/luatex/lualollipop.fmt",
     "share/texmf-var/web2c/luatex/luatex.fmt",
+    "share/texmf-var/web2c/luatex/pdfcsplain.fmt",
     "share/texmf-var/web2c/metafont/",
     "share/texmf-var/web2c/metafont/mf.base",
     "share/texmf-var/web2c/pdftex/",
@@ -59,6 +57,7 @@ TEXMF_VAR_FILES = [
     "share/texmf-var/web2c/pdftex/etex.fmt",
     "share/texmf-var/web2c/pdftex/jadetex.fmt",
     "share/texmf-var/web2c/pdftex/latex.fmt",
+    "share/texmf-var/web2c/pdftex/lollipop.fmt",
     "share/texmf-var/web2c/pdftex/mex.fmt",
     "share/texmf-var/web2c/pdftex/mllatex.fmt",
     "share/texmf-var/web2c/pdftex/mltex.fmt",
@@ -82,7 +81,9 @@ TEXMF_VAR_FILES = [
     "share/texmf-var/web2c/uptex/uptex.fmt",
     "share/texmf-var/web2c/xetex/",
     "share/texmf-var/web2c/xetex/cont-en.fmt",
+    "share/texmf-var/web2c/xetex/pdfcsplain.fmt",
     "share/texmf-var/web2c/xetex/xelatex.fmt",
+    "share/texmf-var/web2c/xetex/xelollipop.fmt",
     "share/texmf-var/web2c/xetex/xetex.fmt",
 ]
 
