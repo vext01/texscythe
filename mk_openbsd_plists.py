@@ -257,9 +257,15 @@ buildset_top_matter = [
     "@pkgpath print/texlive/texmf-minimal",
     "@pkgpath print/teTeX/texmf",
 ]
+buildset_bottom_matter = [
+    "@exec-update if [ -e \"%D/bin/mktexlsr\" ]; then %D/bin/mktexlsr > /dev/null 2>&1; fi"
+]
 buildset_files = list_subtract(collect_files(buildset_specs), never_files)
 buildset_files = sorted(buildset_files + TEXMF_VAR_FILES)
-write_plist(buildset_files, "PLIST-buildset", buildset_top_matter)
+write_plist(buildset_files,
+            "PLIST-buildset",
+            buildset_top_matter,
+            buildset_bottom_matter)
 print("\n\n")
 
 # /-------------------------------------
@@ -374,7 +380,7 @@ full_top_matter = [
     "@conflict texlive_texmf-docs-<%s" % YEAR,
     "@conflict texlive_texmf-minimal-<%s" % YEAR,
     "@conflict texlive_texmf-buildset-<%s" % YEAR,
-    "@conflict texlive_texmf-contextt-<%s" % YEAR,
+    "@conflict texlive_texmf-context-<%s" % YEAR,
     "@pkgpath print/texlive/texmf-full",
     "@pkgpath print/teTeX/texmf",
 ]
