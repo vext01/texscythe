@@ -153,7 +153,9 @@ def filter_junk(filelist):
     return [ x for x in filelist if
             # Windows junk
             not re.match(".*\.([Ee][Xx][Ee]|[Bb][Aa][Tt])$", x) and
-            not re.match(".*/mswin/.*", x) and
+            # no win32 stuff, but should probably keep win32 images in tl docs.
+            not ("win32" in x and "doc/texlive" not in x) and
+            ("mswin" not in x) and
             # Context source code -- seriously?
             not re.match("^share/texmf-dist/scripts/context/stubs/source/", x) and
             # PDF manuals
