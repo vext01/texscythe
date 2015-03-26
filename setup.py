@@ -3,8 +3,10 @@
 from setuptools import setup
 import sys
 
-setup(name              = 'texscythe',
-    version           = '0.1',
+from texscythe import VERSION
+
+setup(name            = 'texscythe',
+    version           = VERSION,
     description       = 'TeX Live texmf subsetter',
     author            = 'Edd Barrett',
     author_email      = 'vext01@gmail.com',
