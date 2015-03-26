@@ -18,9 +18,9 @@ class Test_TeXLive(AbstractTest):
         #    "regex"             : None,
         #}
         self.cfg = config.Config(
-                sqldb=os.path.join(DIRPATH, "texlive2013.db"),
-                plist=os.path.join(DIRPATH, "PLIST-texlive2013"),
-                tlpdb=os.path.join(DIRPATH, "..", "texlive2013.tlpdb.gz"),
+                sqldb=os.path.join(DIRPATH, "texlive2014.db"),
+                plist=os.path.join(DIRPATH, "PLIST-texlive2014"),
+                tlpdb=os.path.join(DIRPATH, "..", "texlive2014.tlpdb.gz"),
                 dirs=False
                 )
 
@@ -29,5 +29,5 @@ class Test_TeXLive(AbstractTest):
     @pytest.mark.slow
     def test_superficial(self):
         # numbers determined independently by grep
-        assert self.sess.query(Package).count() == 5599
-        assert self.sess.query(File).count() == 127356
+        assert self.sess.query(Package).count() == 5987
+        assert self.sess.query(File).count() == 139123
