@@ -94,11 +94,13 @@ CONFLICT_FILES = [
     # configure time.
     "@man man/man1/bbox.1",
     "@man man/man1/disdvi.1",
-    # Tex Live's psutils includes some other stuff. Namely it includes
+    # We have a psutils port, but tex live's version includes some other
+    # stuff (perl scripts). Best package those up.
     # a bunch of perl scripts.
     "@man man/man1/epsffit.1", #
     "@man man/man1/extractres.1", #
-    #"@man man/man1/fixwwps.1",
+    "@man man/man1/psutils.1",
+    "@man man/man1/psjoin.1",
     "@man man/man1/includeres.1", #
     "@man man/man1/ps2eps.1",
     "@man man/man1/psbook.1", #
@@ -244,6 +246,8 @@ buildset_pkgs = [
     "metapost",
     # www/yaws
     "times", "courier",
+    # coccinelle
+    "comment", "xcolor",
     ]
 
 print(">>> texlive_texmf-buildset")
