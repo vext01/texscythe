@@ -2,3 +2,8 @@
 **/*.swp
 *.db
 PLIST*
+build/
+dist/
+*.egg/
+*.egg-info/
+
