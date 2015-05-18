@@ -18,6 +18,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 DeclarativeBase = declarative_base()
 
+
 class Package(DeclarativeBase):
     __tablename__ = "packages"
     # It may not be good relational database design to use a name as a primary
@@ -32,13 +33,14 @@ class Package(DeclarativeBase):
     # XXX catalogue-*
 
     @staticmethod
-    def skel(pkgname): return Package(pkgname=pkgname) # fill in the rest as we find it
+    def skel(pkgname):
+        return Package(pkgname=pkgname)  # fill in the rest as we find it
+
 
 class Dependency(DeclarativeBase):
     __tablename__ = "dependencies"
     id = Column(Integer, primary_key=True)
     pkgname = Column(String, ForeignKey("packages.pkgname"))
-    #needs = Column(String, ForeignKey("packages.pkgname"))
     needs = Column(String)
 
     package = relationship("Package", backref=backref("dependencies"))
@@ -46,14 +48,16 @@ class Dependency(DeclarativeBase):
     def __str__(self):
         return "Dependency: %s needs %s" % (self.pkgname, self.needs)
 
+
 class File(DeclarativeBase):
     __tablename__ = "files"
     id = Column(Integer, primary_key=True)
     pkgname = Column(String, ForeignKey("packages.pkgname"))
     filename = Column(String)
-    filetype = Column(String) # [r]unfile/[s]rcfile/[d]ocfile/[b]infile
+    filetype = Column(String)  # [r]unfile/[s]rcfile/[d]ocfile/[b]infile
 
     package = relationship("Package", backref=backref("files", lazy='dynamic'))
+
 
 def init_orm(tlpdb_path):
     # Set up ORM

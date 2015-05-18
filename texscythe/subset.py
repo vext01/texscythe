@@ -12,11 +12,16 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import sys, os.path, re
+import sys
+import os.path
+import re
 
-from orm import Package, Dependency, File, init_orm
+from orm import Package, File, init_orm
 
-class TeXSubsetError(Exception): pass
+
+class TeXSubsetError(Exception):
+    pass
+
 
 class FileSpec(object):
     def __init__(self, pkgname, filetypes, regex=None, no_depends=False):
@@ -27,12 +32,15 @@ class FileSpec(object):
 
     def __str__(self):
         return "FileSpec: pkgname='%s', filetypes=%s, regex=%s, no_depends=%s" % \
-                (self.pkgname, self.filetypes, self.regex, self.no_depends)
+            (self.pkgname, self.filetypes, self.regex, self.no_depends)
 
 BLANK = 80 * " "
+
+
 def feedback(action, message):
     sys.stderr.write("\r%s\r  %s: %s" % (BLANK, action, message))
     sys.stderr.flush()
+
 
 def parse_subset_spec(spec):
     """ Parse subset specs. E.g.:
@@ -49,7 +57,7 @@ def parse_subset_spec(spec):
         raise TeXSubsetError("Bad filesepc: '%s'" % spec)
 
     # pad the elements up to 3 length and unpack
-    elems = elems + [ "" for x in range(3 - len(elems)) ]
+    elems = elems + ["" for x in range(3 - len(elems))]
 
     (pkgname, filetypes, regex) = elems
 
@@ -63,7 +71,7 @@ def parse_subset_spec(spec):
 
     # parse file types
     if filetypes == "":
-        filetypes = ["run", "src", "doc", "bin"] # all types
+        filetypes = ["run", "src", "doc", "bin"]  # all types
     else:
         filetypes = filetypes.split(",")
         for t in filetypes:
@@ -78,6 +86,7 @@ def parse_subset_spec(spec):
 
     return FileSpec(pkgname, filetypes, regex, no_depends)
 
+
 # Adds directory entries for a file
 def dir_entries(path, exclude=[]):
     dirs = []
@@ -87,10 +96,11 @@ def dir_entries(path, exclude=[]):
             dirs.append(path + os.path.sep)
     return dirs
 
-def compute_subset(cfg, sess = None):
+
+def compute_subset(cfg, sess=None):
     # parse the pkgspecs
-    include_specs = [ parse_subset_spec(s) for s in cfg.inc_pkgspecs ]
-    exclude_specs = [ parse_subset_spec(s) for s in cfg.exc_pkgspecs ]
+    include_specs = [parse_subset_spec(s) for s in cfg.inc_pkgspecs]
+    exclude_specs = [parse_subset_spec(s) for s in cfg.exc_pkgspecs]
 
     if sess is None:
         (sess, engine) = init_orm(cfg.sqldb)
@@ -106,33 +116,34 @@ def compute_subset(cfg, sess = None):
     if not cfg.quiet:
         sys.stderr.write("Performing subtract... ")
     subset = include_files - exclude_files
-    if not cfg.quiet: sys.stderr.write("Done\n")
-
-    #def get_required_dirs(path):
-    #    dirs = []
-    #    while path != "":
-    #        path = os.path.dirname(path)
-    #        if path != "": dirs.append(path + os.path.sep)
-    #    return dirs
+    if not cfg.quiet:
+        sys.stderr.write("Done\n")
 
     if cfg.dirs:
-        if not cfg.quiet: sys.stderr.write("Adding directory lines...")
+        if not cfg.quiet:
+            sys.stderr.write("Adding directory lines...")
         dirs = set()
-        for line in subset: dirs |= set(dir_entries(line))
+        for line in subset:
+            dirs |= set(dir_entries(line))
 
         subset |= dirs
-        if not cfg.quiet: sys.stderr.write("Done\n")
+        if not cfg.quiet:
+            sys.stderr.write("Done\n")
 
-    if not cfg.quiet: sys.stderr.write("Sorting... ")
+    if not cfg.quiet:
+        sys.stderr.write("Sorting... ")
     subset = sorted(subset)
-    if not cfg.quiet: sys.stderr.write("Done\n")
+    if not cfg.quiet:
+        sys.stderr.write("Done\n")
 
     # Apply global regex if there is one
     if cfg.regex is not None:
-        if not cfg.quiet: sys.stderr.write("Applying global regex...")
+        if not cfg.quiet:
+            sys.stderr.write("Applying global regex...")
         rgx = re.compile(cfg.regex)
-        subset = set([ x for x in subset if rgx.match(x) ])
-        if not cfg.quiet: sys.stderr.write("Done\n")
+        subset = set([x for x in subset if rgx.match(x)])
+        if not cfg.quiet:
+            sys.stderr.write("Done\n")
 
     if cfg.plist is not None:
         # Write out to file
@@ -141,9 +152,11 @@ def compute_subset(cfg, sess = None):
         with open(cfg.plist, "w") as fh:
             for fl in sorted(subset):
                 fh.write("%s%s\n" % (cfg.prefix_filenames, fl))
-        if not cfg.quiet: sys.stderr.write("Done\n")
+        if not cfg.quiet:
+            sys.stderr.write("Done\n")
     else:
-        return sorted([ "%s%s" % (cfg.prefix_filenames, f) for f in subset])
+        return sorted(["%s%s" % (cfg.prefix_filenames, f) for f in subset])
+
 
 def build_file_list(cfg, sess, filespecs):
     # we have to be careful how we do this to not explode the memory.
@@ -164,16 +177,18 @@ def build_file_list(cfg, sess, filespecs):
 
         if not cfg.quiet:
             feedback("Building file list",
-                    "done: %s:%s%s has %d files\n" % \
-                    (spec.pkgname, ",".join(spec.filetypes),
-                        rpattern, len(new_files)))
+                     "done: %s:%s%s has %d files\n" %
+                     (spec.pkgname, ",".join(spec.filetypes),
+                      rpattern, len(new_files)))
         files |= new_files
 
     return files
 
+
 def build_file_list_pkg(cfg, sess, filespec, seen_packages):
     pkgname = filespec.pkgname
-    if not cfg.quiet: feedback("Building file list", pkgname)
+    if not cfg.quiet:
+        feedback("Building file list", pkgname)
 
     archpkg = False
     if "ARCH" in pkgname:
@@ -187,7 +202,7 @@ def build_file_list_pkg(cfg, sess, filespec, seen_packages):
 
     try:
         seen_packages[pkgname]
-        return set() # already processed this pkg
+        return set()  # already processed this pkg
     except KeyError:
         pass
 
@@ -207,20 +222,19 @@ def build_file_list_pkg(cfg, sess, filespec, seen_packages):
     for filetype in filespec.filetypes:
         # Note that in the DB filetype is just the first letter. If in the
         # future two filetypes of the same first letter arise, refactor.
-        files |= set([ f.filename for f in \
-                pkg.files.filter(File.filetype == filetype[0]).all() ])
+        files |= set([f.filename for f in
+                      pkg.files.filter(File.filetype == filetype[0]).all()])
 
     # filter based upon regex
     if filespec.regex is not None:
-        files = set([ f for f in files if filespec.regex.match(f) ])
+        files = set([f for f in files if filespec.regex.match(f)])
 
     # Process deps and union with the above files.
     # Pass down a new FileSpec that inherits filetypes and regex from the
     # current filespec.
     if not filespec.no_depends:
         for dep in pkg.dependencies:
-            files |= build_file_list_pkg(cfg, sess,
-                    FileSpec(dep.needs, filespec.filetypes, filespec.regex),
-                    seen_packages)
+            files |= build_file_list_pkg(cfg, sess, FileSpec(
+                dep.needs, filespec.filetypes, filespec.regex), seen_packages)
     # return them
     return files

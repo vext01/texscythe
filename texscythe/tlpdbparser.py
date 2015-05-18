@@ -12,13 +12,17 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import sys, os, os.path
+import sys
+import os
 import orm
 
 from orm import Package, Dependency, File
 from orm import DeclarativeBase
 
-class TeXParseError(Exception): pass
+
+class TeXParseError(Exception):
+    pass
+
 
 class ParserState(object):
     """ Represents where abouts it the tlpdb we are """
@@ -40,6 +44,7 @@ class ParserState(object):
         self.filelevel = filelevel
         self.num_pkgs_parsed = 0
 
+
 def fieldname_and_data(s):
     try:
         space = s.index(" ")
@@ -47,20 +52,27 @@ def fieldname_and_data(s):
         raise TeXParseError("Malformed line, no space: '%s'" % s)
     return (s[0:space], s[space + 1:])
 
+
 def user_feedback(s):
     sys.stdout.write(s)
     sys.stdout.flush()
 
+
 def parse(sess, cfg):
-    if not cfg.quiet: user_feedback("Parsing TLPDB...")
+    if not cfg.quiet:
+        user_feedback("Parsing TLPDB...")
 
     if cfg.tlpdb.endswith(".gz"):
         import gzip
-        with gzip.open(cfg.tlpdb, "r") as fh: parse_lines(sess, cfg, fh)
+        with gzip.open(cfg.tlpdb, "r") as fh:
+            parse_lines(sess, cfg, fh)
     else:
-        with open(cfg.tlpdb, "r") as fh: parse_lines(sess, cfg, fh)
+        with open(cfg.tlpdb, "r") as fh:
+            parse_lines(sess, cfg, fh)
 
-    if not cfg.quiet: print("\n")
+    if not cfg.quiet:
+        print("\n")
+
 
 def parse_lines(sess, cfg, fh):
     state = ParserState(None, ParserState.TOPLEVEL)
@@ -71,6 +83,7 @@ def parse_lines(sess, cfg, fh):
     # not have seen a newline to otherwise cause the commit.
     if state.pkg is not None:
         sess.add(state.pkg)
+
 
 def parse_line(sess, cfg, line, state):
     if line.startswith(" "):
@@ -85,18 +98,21 @@ def parse_line(sess, cfg, line, state):
         try:
             func = globals()[funcname]
         except KeyError:
-            raise TeXParseError(
-                    "Unknown package metadata '%s'. Missing handler %s()" % \
-                    (field, funcname))
+            raise TeXParseError("Unknown package metadata '%s'. "
+                                "Missing handler %s()" %
+                                (field, funcname))
 
         func(sess, cfg, data, state)
 
-filelevel_map = { \
-    ParserState.DOCFILES : "d",
-    ParserState.SRCFILES : "s",
-    ParserState.BINFILES : "b",
-    ParserState.RUNFILES : "r",
-    }
+
+filelevel_map = {
+    ParserState.DOCFILES: "d",
+    ParserState.SRCFILES: "s",
+    ParserState.BINFILES: "b",
+    ParserState.RUNFILES: "r",
+}
+
+
 def parse_file_line(sess, cfg, line, state):
     """ We get here when we see a file that is part of a package """
     assert state.pkg is not None and state.filelevel != ParserState.TOPLEVEL
@@ -106,11 +122,13 @@ def parse_file_line(sess, cfg, line, state):
     # in case later versions of tlpdb include stuff we should know about.
     fields = line.split(" ")
     if not (len(fields) == 1 or fields[1].startswith("details=")):
-        raise TeXParseError("Weird file line: %d<<%s>> '%s'" % \
-                (len(fields), fields, line, ))
+        raise TeXParseError("Weird file line: %d<<%s>> '%s'" %
+                            (len(fields), fields, line, ))
 
-    fl = File(pkgname=state.pkg.pkgname, filename=fields[0], filetype=filelevel_map[state.filelevel])
+    fl = File(pkgname=state.pkg.pkgname, filename=fields[0],
+              filetype=filelevel_map[state.filelevel])
     sess.add(fl)
+
 
 def parse_end_package(sess, cfg, data, state):
     """ Called when we hit the blank line inbetween packages """
@@ -120,78 +138,97 @@ def parse_end_package(sess, cfg, data, state):
     state.num_pkgs_parsed += 1
     if state.num_pkgs_parsed % ParserState.COMMIT_THRESHOLD == 0:
         sess.commit()
-        if not cfg.quiet: user_feedback("%s..." % state.num_pkgs_parsed)
+        if not cfg.quiet:
+            user_feedback("%s..." % state.num_pkgs_parsed)
 
     state.filelevel = ParserState.TOPLEVEL
     state.pkg = None
 
+
 def parse_name_data(sess, cfg, data, state):
     """ This is executed when we hit the beginning of a new package """
     assert(state.pkg is None and state.filelevel == ParserState.TOPLEVEL)
-    state.pkg = Package.skel(data) # scaffold the package
+    state.pkg = Package.skel(data)  # scaffold the package
     state.filelevel = ParserState.TOPLEVEL
+
 
 def parse_shortdesc_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     state.pkg.shortdesc = data
 
+
 def parse_longdesc_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
 
-    if state.pkg.longdesc is None: # first longdesc line
+    if state.pkg.longdesc is None:  # first longdesc line
         state.pkg.longdesc = ""
 
     state.pkg.longdesc += data
+
 
 def parse_revision_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     state.pkg.revision = int(data)
 
+
 def parse_category_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
+
 
 def parse_depend_data(sess, cfg, data, state):
     assert(state.pkg is not None and state.filelevel == ParserState.TOPLEVEL)
     dep = Dependency(pkgname=state.pkg.pkgname, needs=data)
     sess.add(dep)
 
+
 # Note that we assume that files information comes last in a package
 def parse_runfiles_data(sess, cfg, data, state):
     assert(state.pkg is not None)
     state.filelevel = ParserState.RUNFILES
 
+
 def parse_docfiles_data(sess, cfg, data, state):
     assert(state.pkg is not None)
     state.filelevel = ParserState.DOCFILES
+
 
 def parse_srcfiles_data(sess, cfg, data, state):
     assert(state.pkg is not None)
     state.filelevel = ParserState.SRCFILES
 
+
 def parse_binfiles_data(sess, cfg, data, state):
     assert(state.pkg is not None)
     state.filelevel = ParserState.BINFILES
 
+
 def parse_catalogue_data(sess, cfg, data, state):
     pass
+
 
 def parse_catalogue_ctan_data(sess, cfg, data, state):
     pass
 
+
 def parse_catalogue_date_data(sess, cfg, data, state):
     pass
+
 
 def parse_catalogue_license_data(sess, cfg, data, state):
     pass
 
+
 def parse_catalogue_version_data(sess, cfg, data, state):
     pass
+
 
 def parse_execute_data(sess, cfg, data, state):
     pass
 
+
 def parse_postaction_data(sess, cfg, data, state):
     pass
+
 
 def print_db_summary(sess):
     print(25 * "=")
@@ -201,9 +238,11 @@ def print_db_summary(sess):
     print("Files:        %8d" % sess.query(File).count())
     print("Dependencies: %8d" % sess.query(Dependency).count())
 
-def initdb(cfg, return_sess = False):
+
+def initdb(cfg, return_sess=False):
     # Since we will only ever use sqlite, we can do this
-    if os.path.exists(cfg.sqldb): os.unlink(cfg.sqldb)
+    if os.path.exists(cfg.sqldb):
+        os.unlink(cfg.sqldb)
 
     # Set up ORM
     (sess, engine) = orm.init_orm(cfg.sqldb)
@@ -214,7 +253,8 @@ def initdb(cfg, return_sess = False):
     sess.commit()
 
     # Done
-    if not cfg.quiet: print_db_summary(sess)
+    if not cfg.quiet:
+        print_db_summary(sess)
 
     if not return_sess:
         sess.close()

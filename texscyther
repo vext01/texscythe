@@ -13,7 +13,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import argparse, re
+
+import argparse
 from texscythe import config, VERSION
 
 EPILOG = """
@@ -38,6 +39,7 @@ Example usage:
 
 DESCR = "Compute subsets of the TeX Live texmf tree."
 
+
 def print_version():
         print(72 * "-")
         print("  TeXScythe Version %s" % (VERSION))
@@ -46,49 +48,50 @@ def print_version():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-            epilog=EPILOG,
-            description=DESCR,
-            formatter_class=argparse.RawDescriptionHelpFormatter
+        epilog=EPILOG,
+        description=DESCR,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
     parser.add_argument("--initdb", action='store_true',
-            help="initialise the database")
+                        help="initialise the database")
     parser.add_argument("-s", "--subset", action='store_true',
-            help="compute a subset")
+                        help="compute a subset")
     parser.add_argument("-i", "--include", nargs='*',
-            help="include package in subset")
+                        help="include package in subset")
     parser.add_argument("-x", "--exclude", nargs='*',
-            help="exclude package in subset")
+                        help="exclude package in subset")
     parser.add_argument("--version", action='store_true',
-            help="show version")
+                        help="show version")
     parser.add_argument("-p", "--prefix_filenames",
-            help="prefix string to filenames")
+                        help="prefix string to filenames")
     parser.add_argument("-o", "--output-plist",
-            help="output filename")
+                        help="output filename")
     parser.add_argument("-t", "--tlpdb",
-            help="path to texive.tlpdb")
+                        help="path to texive.tlpdb")
     parser.add_argument("-d", "--sqldb",
-            help="path to sqlite3 database")
+                        help="path to sqlite3 database")
     parser.add_argument("-D", "--nodirs", action='store_true',
-            help="do not add directory entries in packing lists")
+                        help="do not add directory entries in packing lists")
     parser.add_argument("-a", "--arch",
-            help="cpu architecure, e.g. 'alpha-linux' "
-            "(if not set, ARCH pkgs ignored)")
+                        help="cpu architecure, e.g. 'alpha-linux' "
+                        "(if not set, ARCH pkgs ignored)")
     parser.add_argument("-r", "--regex",
-            help="filter final file list by regex before writing out")
+                        help="regex filter final file list before writing out")
     parser.add_argument("-q", "--quiet", action='store_true',
-            help="be quiet")
+                        help="be quiet")
     parser.add_argument("-S", "--skip-missing-archpkgs",
-            action='store_true', help="skip missing ARCH packages")
+                        action='store_true', help="skip missing ARCH packages")
 
     args = parser.parse_args()
 
     # No two of these should be enabled at once
     primary_tasks = [args.subset, args.version, args.initdb]
-    chosen_tasks = [ x for x in primary_tasks if x ]
+    chosen_tasks = [x for x in primary_tasks if x]
 
     if len(chosen_tasks) != 1:
-        parser.error("please select a single primary task.\n  one of: --initdb, --subset, --version")
+        parser.error("please select a single primary task.\n" +
+                     " one of: --initdb, --subset, --version")
 
     cfg_kws = {}
     if args.sqldb is not None:
@@ -131,4 +134,4 @@ if __name__ == "__main__":
     elif args.version:
         print_version()
     else:
-        assert False # should not happen
+        assert False  # should not happen
