@@ -1,7 +1,5 @@
 *.pyc
 **/*.swp
-*.db
-PLIST*
 build/
 dist/
 *.egg/
