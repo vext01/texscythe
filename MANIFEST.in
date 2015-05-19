@@ -1,0 +1,3 @@
+include test/*.tlpdb
+include test/*.py
+include *.tlpdb.gz
