@@ -8,15 +8,6 @@ class Test_TeXLive(AbstractTest):
     """ Run some tests on a large texlive tlpdb """
 
     def setup_method(self, method):
-        #self.config = {
-        #    "sqldb"             : os.path.join(DIRPATH, "texlive2013.db"),
-        #    "plist"             : os.path.join(DIRPATH, "PLIST-texlive2013"),
-        #    "prefix_filenames"  : "",
-        #    "tlpdb"             : os.path.join(DIRPATH, "..", "texlive2013.tlpdb.gz"),
-        #    "arch"              : None,
-        #    "dirs"              : False,
-        #    "regex"             : None,
-        #}
         self.cfg = config.Config(
                 sqldb=os.path.join(DIRPATH, "texlive2014.db"),
                 plist=os.path.join(DIRPATH, "PLIST-texlive2014"),
