@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 import argparse
-from texscythe import config, VERSION
+from texscythe import config, VERSION, COPYRIGHT
 
 EPILOG = """
 INCLUDE and EXCLUDE are package specs of the form:
@@ -28,7 +28,7 @@ DESCR = "Compute subsets of the TeX Live texmf tree."
 def print_version():
         print(72 * "-")
         print("  TeXScythe Version %s" % (VERSION))
-        print("  (c) Edd Barrett 2013 <vext01@gmail.com> <edd@openbsd.org>")
+        print("  %s" % COPYRIGHT)
         print(72 * "-")
 
 if __name__ == "__main__":
