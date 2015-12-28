@@ -18,16 +18,20 @@ class Test_Errors(object):
                 )
         self.sess = tlpdbparser.initdb(self.cfg, return_sess=True)
 
-    def teardown_method(self, method):
-        try:
-            os.unlink(self.cfg["sqldb"])
-        except:
-            pass
+    def setup_method(self, method):
+        self.cfg = None
 
-        try:
-            os.unlink(self.cfg["plist"])
-        except:
-            pass
+    def teardown_method(self, method):
+        if self.cfg is not None:
+            try:
+                os.unlink(self.cfg.sqldb)
+            except OSError:
+                pass
+
+            try:
+                os.unlink(self.cfg.plist)
+            except OSError:
+                pass
 
         try:
             self.sess.close()
