@@ -8,7 +8,6 @@ class Test_BasicWithArch(AbstractTest):
 
     def setup_method(self, method):
         self.cfg = config.Config(
-                sqldb=os.path.join(DIRPATH, "basic_arch.db"),
                 plist=os.path.join(DIRPATH, "PLIST-basic_arch"),
                 tlpdb=os.path.join(DIRPATH, "basic.tlpdb"),
                 arch="amd64-linux",
@@ -73,7 +72,6 @@ class Test_SkipMissingArchPkgs(AbstractTest):
 
     def setup_method(self, method):
         self.cfg = config.Config(
-                sqldb=os.path.join(DIRPATH, "missing_archpkg.db"),
                 plist=os.path.join(DIRPATH, "PLIST-missing_archpkg"),
                 tlpdb=os.path.join(DIRPATH, "error_missing_archpkg.tlpdb"),
                 arch="amd64-linux",

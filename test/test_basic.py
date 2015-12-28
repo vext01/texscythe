@@ -8,7 +8,6 @@ class Test_Basic(AbstractTest):
 
     def setup_method(self, method):
         self.cfg = config.Config(
-                sqldb=os.path.join(DIRPATH, "basic.db"),
                 plist=os.path.join(DIRPATH, "PLIST-basic"),
                 tlpdb=os.path.join(DIRPATH, "basic.tlpdb"),
                 dirs=False
@@ -132,3 +131,8 @@ class Test_Basic(AbstractTest):
         files = self._read_in_plist()
 
         assert files == ["a_file_we_should_find"]
+
+    def test_database_path0001(self):
+        db = os.path.join(DIRPATH, "basic.tlpdb.db")
+        assert self.cfg.sqldb == db
+        assert os.path.exists(db)

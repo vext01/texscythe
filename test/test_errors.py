@@ -11,7 +11,6 @@ class Test_Errors(object):
 
     def parse_file(self, tlpdb):
         self.cfg = config.Config(
-                sqldb=os.path.join(DIRPATH, "errors.db"),
                 plist=os.path.join(DIRPATH, "PLIST-errors"),
                 tlpdb=os.path.join(DIRPATH, tlpdb + ".tlpdb"),
                 arch="amd64-linux",
@@ -59,7 +58,7 @@ class Test_Errors(object):
 
     def test_config_fields(self):
         # the config instance namespace is protected.
-        c = config.Config()
+        c = config.Config("unused.tlpdb")
         pytest.raises(config.ConfigError, "c.bad_field = 'oh no!'")
 
     def test_missing_archpkg(self):

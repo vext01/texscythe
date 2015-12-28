@@ -9,11 +9,9 @@ class Config(object):
                 "arch", "dirs", "regex", "inc_pkgspecs", "exc_pkgspecs",
                 "quiet", "skip_missing_archpkgs"]
 
-    def __init__(self,
-                 sqldb="texscythe.db",
+    def __init__(self, tlpdb,
                  plist="PLIST",
                  prefix_filenames="",
-                 tlpdb="texlive.tlpdb",
                  arch=None,
                  dirs=True,
                  regex=None,
@@ -21,7 +19,7 @@ class Config(object):
                  exc_pkgspecs=[],
                  quiet=False,
                  skip_missing_archpkgs=False):
-        self.sqldb = sqldb
+        self.sqldb = tlpdb + ".db"
         self.plist = plist
         self.prefix_filenames = prefix_filenames
         self.tlpdb = tlpdb

@@ -9,7 +9,6 @@ class Test_TeXLive(AbstractTest):
 
     def setup_method(self, method):
         self.cfg = config.Config(
-                sqldb=os.path.join(DIRPATH, "texlive2014.db"),
                 plist=os.path.join(DIRPATH, "PLIST-texlive2014"),
                 tlpdb=os.path.join(DIRPATH, "..", "texlive2014.tlpdb.gz"),
                 dirs=False

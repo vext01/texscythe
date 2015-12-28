@@ -54,8 +54,6 @@ if __name__ == "__main__":
                         help="output filename")
     parser.add_argument("-t", "--tlpdb",
                         help="path to texive.tlpdb")
-    parser.add_argument("-d", "--sqldb",
-                        help="path to sqlite3 database")
     parser.add_argument("-D", "--nodirs", action='store_true',
                         help="do not add directory entries in packing lists")
     parser.add_argument("-a", "--arch",
@@ -78,15 +76,14 @@ if __name__ == "__main__":
         parser.error("please select a single primary task.\n" +
                      " one of: --initdb, --subset, --version")
 
+    if args.tlpdb is None:
+        parser.error("No TLPDB specified")
+
     cfg_kws = {}
-    if args.sqldb is not None:
-        cfg_kws["sqldb"] = args.sqldb
     if args.prefix_filenames is not None:
         cfg_kws["prefix_filenames"] = args.prefix_filenames
     if args.output_plist is not None:
         cfg_kws["plist"] = args.output_plist
-    if args.tlpdb is not None:
-        cfg_kws["tlpdb"] = args.tlpdb
     if args.arch is not None:
         cfg_kws["arch"] = args.arch
     if args.nodirs:
@@ -102,7 +99,7 @@ if __name__ == "__main__":
     if args.skip_missing_archpkgs:
         cfg_kws["skip_missing_archpkgs"] = args.skip_missing_archpkgs
 
-    cfg = config.Config(**cfg_kws)
+    cfg = config.Config(args.tlpdb, **cfg_kws)
 
     if not args.version and not cfg.quiet:
         print_version()

@@ -8,7 +8,6 @@ class Test_Regex(AbstractTest):
 
     def setup_method(self, method):
         self.cfg = config.Config(
-                sqldb=os.path.join(DIRPATH, "basic.db"),
                 plist=os.path.join(DIRPATH, "PLIST-basic"),
                 tlpdb=os.path.join(DIRPATH, "basic.tlpdb"),
                 dirs=False
@@ -72,7 +71,6 @@ class Test_GlobalRegex(AbstractTest):
 
     def setup_method(self, method):
         self.cfg = config.Config(
-                sqldb=os.path.join(DIRPATH, "basic.db"),
                 plist=os.path.join(DIRPATH, "PLIST-basic"),
                 tlpdb=os.path.join(DIRPATH, "basic.tlpdb"),
                 dirs=False,
