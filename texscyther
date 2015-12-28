@@ -1,4 +1,6 @@
 #!/usr/bin/env python2.7
+"""Compute subsets of the TeX Live texmf tree."""
+
 import argparse
 from texscythe import config, VERSION, COPYRIGHT
 
@@ -22,8 +24,6 @@ Example usage:
   texscyther will accept gzipped tlpdb files.
 """
 
-DESCR = "Compute subsets of the TeX Live texmf tree."
-
 
 def print_version():
         print(72 * "-")
@@ -34,7 +34,7 @@ def print_version():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         epilog=EPILOG,
-        description=DESCR,
+        description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
