@@ -1,11 +1,11 @@
-import pytest, sys, os.path
+import os.path
 from helper import AbstractTest, DIRPATH
 
 from texscythe.orm import File, Package
 from texscythe import subset, config
 
-class Test_Basic(AbstractTest):
 
+class Test_Basic(AbstractTest):
     def setup_method(self, method):
         self.cfg = config.Config(
                 plist=os.path.join(DIRPATH, "PLIST-basic"),
@@ -24,9 +24,11 @@ class Test_Basic(AbstractTest):
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
 
-        expected = sorted([ "runfiles/runfile%d" % x for x in range(1, 4) ] + \
-            [ "docfiles/docfile%d" % x for x in range(1, 3) ] + \
-            [ "srcfiles/srcfile1" ])
+        expected = sorted(
+            ["runfiles/runfile%d" % x for x in range(1, 4)] +
+            ["docfiles/docfile%d" % x for x in range(1, 3)] +
+            ["srcfiles/srcfile1"]
+        )
 
         assert files == expected
 
@@ -34,7 +36,7 @@ class Test_Basic(AbstractTest):
         self.set_specs(["rootpkg:run"])
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
-        expected = sorted([ "runfiles/runfile%d" % x for x in range(1, 4) ])
+        expected = sorted(["runfiles/runfile%d" % x for x in range(1, 4)])
 
         assert files == expected
 
@@ -42,7 +44,7 @@ class Test_Basic(AbstractTest):
         self.set_specs(["rootpkg:doc"])
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
-        expected = sorted([ "docfiles/docfile%d" % x for x in range(1, 3) ])
+        expected = sorted(["docfiles/docfile%d" % x for x in range(1, 3)])
 
         assert files == expected
 
@@ -67,8 +69,8 @@ class Test_Basic(AbstractTest):
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
         expected = sorted(
-            [ "runfiles/runfile%d" % x for x in range(1, 4) ] +
-            [ "docfiles/docfile%d" % x for x in range(1, 3) ]
+            ["runfiles/runfile%d" % x for x in range(1, 4)] +
+            ["docfiles/docfile%d" % x for x in range(1, 3)]
         )
 
         assert files == expected
@@ -78,8 +80,10 @@ class Test_Basic(AbstractTest):
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
 
-        expected = sorted([ "runfiles/runfile%d" % x for x in range(1, 4) ] +
-                [ "srcfiles/srcfile1" ])
+        expected = sorted(
+            ["runfiles/runfile%d" % x for x in range(1, 4)] +
+            ["srcfiles/srcfile1"]
+        )
 
         assert files == expected
 
@@ -100,7 +104,7 @@ class Test_Basic(AbstractTest):
 
     def test_filename_prefix2(self):
         self.cfg.prefix_filenames = "share/"
-        self.cfg.plist = None # Return file list
+        self.cfg.plist = None  # Return file list
         self.set_specs(["rootpkg:src"])
         files = subset.compute_subset(self.cfg, self.sess)
 
@@ -108,13 +112,14 @@ class Test_Basic(AbstractTest):
 
     def test_nowrite_plist(self):
         self.set_specs(["rootpkg"])
-        self.cfg.plist = None # don't write plist, return set
+        self.cfg.plist = None  # don't write plist, return set
         files = subset.compute_subset(self.cfg, self.sess)
 
         expected = sorted(
-                [ "runfiles/runfile%d" % x for x in range(1, 4) ] + \
-                [ "docfiles/docfile%d" % x for x in range(1, 3) ] + \
-                [ "srcfiles/srcfile1" ])
+                ["runfiles/runfile%d" % x for x in range(1, 4)] +
+                ["docfiles/docfile%d" % x for x in range(1, 3)] +
+                ["srcfiles/srcfile1"]
+        )
 
         assert files == expected
 

@@ -1,11 +1,10 @@
-import pytest, sys, os.path
+import os.path
 from helper import AbstractTest, DIRPATH
 
-from texscythe.orm import File, Package
 from texscythe import subset, config
 
-class Test_Dirs(AbstractTest):
 
+class Test_Dirs(AbstractTest):
     def setup_method(self, method):
         self.cfg = config.Config(
             plist=os.path.join(DIRPATH, "PLIST-basic"),
@@ -19,9 +18,11 @@ class Test_Dirs(AbstractTest):
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
 
-        expected = sorted([ "runfiles/runfile%d" % x for x in range(1, 4) ] + \
-            [ "docfiles/docfile%d" % x for x in range(1, 3) ] + \
-            [ "srcfiles/srcfile1" ] + [ "runfiles/", "docfiles/", "srcfiles/"])
+        expected = sorted(
+            ["runfiles/runfile%d" % x for x in range(1, 4)] +
+            ["docfiles/docfile%d" % x for x in range(1, 3)] +
+            ["srcfiles/srcfile1"] + ["runfiles/", "docfiles/", "srcfiles/"]
+        )
 
         assert files == expected
 
@@ -30,8 +31,10 @@ class Test_Dirs(AbstractTest):
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
 
-        expected = sorted([ "runfiles/runfile%d" % x for x in range(1, 4) ] +
-            [ "runfiles/"])
+        expected = sorted(
+            ["runfiles/runfile%d" % x for x in range(1, 4)] +
+            ["runfiles/"]
+        )
 
         assert files == expected
 
@@ -40,7 +43,7 @@ class Test_Dirs(AbstractTest):
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
 
-        expected = sorted([ "file1", "file2", "file3" ]) # no root dir entry
+        expected = sorted(["file1", "file2", "file3"])  # no root dir entry
         assert files == expected
 
     def test_dirs4(self):
@@ -49,5 +52,5 @@ class Test_Dirs(AbstractTest):
         files = self._read_in_plist()
 
         # should make intermediate dirs
-        expected = sorted([ "a/", "a/b/", "a/b/c/", "a/b/c/file1" ])
+        expected = sorted(["a/", "a/b/", "a/b/c/", "a/b/c/file1"])
         assert files == expected

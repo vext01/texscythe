@@ -4,6 +4,8 @@ import re
 
 from orm import Package, File, init_orm
 
+BLANK = 80 * " "
+
 
 class TeXSubsetError(Exception):
     pass
@@ -17,10 +19,9 @@ class FileSpec(object):
         self.no_depends = no_depends
 
     def __str__(self):
-        return "FileSpec: pkgname='%s', filetypes=%s, regex=%s, no_depends=%s" % \
-            (self.pkgname, self.filetypes, self.regex, self.no_depends)
-
-BLANK = 80 * " "
+        return ("FileSpec: pkgname='%s', filetypes=%s, "
+                "regex=%s,no_depends=%s" %
+                (self.pkgname, self.filetypes, self.regex, self.no_depends))
 
 
 def feedback(action, message):

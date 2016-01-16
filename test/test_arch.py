@@ -1,11 +1,10 @@
-import pytest, sys, os.path
+import os.path
 from helper import AbstractTest, DIRPATH
 
-from texscythe.orm import File, Package
 from texscythe import subset, config
 
-class Test_BasicWithArch(AbstractTest):
 
+class Test_BasicWithArch(AbstractTest):
     def setup_method(self, method):
         self.cfg = config.Config(
                 plist=os.path.join(DIRPATH, "PLIST-basic_arch"),
@@ -47,7 +46,8 @@ class Test_BasicWithArch(AbstractTest):
         assert files1 == files2
 
     def test_multiple_includes2(self):
-        self.set_specs(["rootpkg:run", "rootpkg:bin", "rootpkg:src", "rootpkg:doc"])
+        self.set_specs(["rootpkg:run", "rootpkg:bin",
+                        "rootpkg:src", "rootpkg:doc"])
         subset.compute_subset(self.cfg, self.sess)
         files1 = self._read_in_plist()
 
@@ -58,7 +58,8 @@ class Test_BasicWithArch(AbstractTest):
         assert files1 == files2
 
     def test_multiple_excludes(self):
-        self.set_specs(["rootpkg"], ["rootpkg:src", "rootpkg:doc", "rootpkg:bin"])
+        self.set_specs(["rootpkg"], ["rootpkg:src", "rootpkg:doc",
+                                     "rootpkg:bin"])
         subset.compute_subset(self.cfg, self.sess)
         files1 = self._read_in_plist()
 
@@ -68,8 +69,8 @@ class Test_BasicWithArch(AbstractTest):
 
         assert files1 == files2
 
-class Test_SkipMissingArchPkgs(AbstractTest):
 
+class Test_SkipMissingArchPkgs(AbstractTest):
     def setup_method(self, method):
         self.cfg = config.Config(
                 plist=os.path.join(DIRPATH, "PLIST-missing_archpkg"),
