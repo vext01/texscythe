@@ -1,8 +1,10 @@
-import pytest, sys, os.path
+import pytest
+import os.path
 from helper import AbstractTest, DIRPATH
 
 from texscythe.orm import File, Package
-from texscythe import subset, config
+from texscythe import config
+
 
 class Test_TeXLive(AbstractTest):
     """ Run some tests on a large texlive tlpdb """

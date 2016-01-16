@@ -1,11 +1,10 @@
-import pytest, sys, os.path
+import os.path
 from helper import AbstractTest, DIRPATH
 
-from texscythe.orm import File, Package
 from texscythe import subset, config
 
-class Test_Regex(AbstractTest):
 
+class Test_Regex(AbstractTest):
     def setup_method(self, method):
         self.cfg = config.Config(
                 plist=os.path.join(DIRPATH, "PLIST-basic"),
@@ -39,7 +38,7 @@ class Test_Regex(AbstractTest):
             "srcfiles/srcfile1"
             ])
 
-    def test_regex3(self):
+    def test_regex4(self):
         # check composing regex filters works
         self.set_specs(["rootpkg::.*(run|src)file[^3]$", "rootpkg:doc:.*2$"])
         subset.compute_subset(self.cfg, self.sess)
@@ -51,24 +50,25 @@ class Test_Regex(AbstractTest):
             "srcfiles/srcfile1"
             ])
 
-    def test_regex4(self):
+    def test_regex5(self):
         # check regex as an exclude works
         self.set_specs(["rootpkg::.*(run|src)file[^3]$"], ["rootpkg::.*2$"])
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
 
-        assert files == sorted([ "runfiles/runfile1", "srcfiles/srcfile1" ])
+        assert files == sorted(["runfiles/runfile1", "srcfiles/srcfile1"])
 
-    def test_regex5(self):
+    def test_regex6(self):
         # check that filtering >1 file type works
         self.set_specs(["rootpkg:run,doc:.*[13]$"])
         subset.compute_subset(self.cfg, self.sess)
         files = self._read_in_plist()
 
-        assert files == sorted(["runfiles/runfile1", "runfiles/runfile3", "docfiles/docfile1"])
+        assert files == sorted(["runfiles/runfile1", "runfiles/runfile3",
+                                "docfiles/docfile1"])
+
 
 class Test_GlobalRegex(AbstractTest):
-
     def setup_method(self, method):
         self.cfg = config.Config(
                 plist=os.path.join(DIRPATH, "PLIST-basic"),

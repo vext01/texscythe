@@ -1,10 +1,14 @@
-import pytest, sys, os.path
-from helper import AbstractTest, DIRPATH
+import pytest
+import os.path
+from helper import DIRPATH
 
-from texscythe.orm import File, Package
-from texscythe import subset, tlpdbparser, config
+from texscythe import tlpdbparser, config
 from texscythe.subset import TeXSubsetError
 from texscythe.tlpdbparser import TeXParseError
+from texscythe import subset
+
+subset  # silence PEP8
+
 
 class Test_Errors(object):
     """ Test a bunch of parser errors """
@@ -39,34 +43,38 @@ class Test_Errors(object):
             pass
 
     def test_weird_line_postfix(self):
-        pytest.raises(TeXParseError, 'self.parse_file("error_weird_line_postfix")')
+        pytest.raises(TeXParseError,
+                      'self.parse_file("error_weird_line_postfix")')
 
     def test_files_not_indented(self):
-        pytest.raises(TeXParseError, 'self.parse_file("error_files_not_indented")')
+        pytest.raises(TeXParseError,
+                      'self.parse_file("error_files_not_indented")')
 
     def test_nonexistent_dep(self):
         self.parse_file("error_nonexistent_dep")
         self.cfg.inc_pkgspecs = ["rootpkg"]
         pytest.raises(TeXSubsetError,
-            'subset.compute_subset(self.cfg, self.sess)')
+                      'subset.compute_subset(self.cfg, self.sess)')
 
     def test_unknwown_filetype(self):
-        pytest.raises(TeXParseError, 'self.parse_file("error_unknown_filetype")')
+        pytest.raises(TeXParseError,
+                      'self.parse_file("error_unknown_filetype")')
 
     def test_bad_filetype_dep(self):
-        self.parse_file("basic") # should work
+        self.parse_file("basic")  # should work
         # now ask for a class of file which is bogus, in this case 'fartfiles'
         self.cfg.inc_pkgspecs = ["rootpkg:fart"]
         pytest.raises(TeXSubsetError,
-            'subset.compute_subset(self.cfg, self.sess)')
+                      'subset.compute_subset(self.cfg, self.sess)')
 
     def test_config_fields(self):
         # the config instance namespace is protected.
         c = config.Config("unused.tlpdb")
         pytest.raises(config.ConfigError, "c.bad_field = 'oh no!'")
+        c  # silence PEP8
 
     def test_missing_archpkg(self):
         self.parse_file("error_missing_archpkg")
         self.cfg.inc_pkgspecs = ["rootpkg"]
         pytest.raises(TeXSubsetError,
-            'subset.compute_subset(self.cfg, self.sess)')
+                      'subset.compute_subset(self.cfg, self.sess)')
