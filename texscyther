@@ -2,7 +2,7 @@
 """Compute subsets of the TeX Live texmf tree."""
 
 import argparse
-from texscythe import config, VERSION, COPYRIGHT
+from texscythe import config, VERSION, COPYRIGHT, orm
 
 EPILOG = """
 INCLUDE and EXCLUDE are package specs of the form:
@@ -108,11 +108,14 @@ if __name__ == "__main__":
 
     # primary tasks
     if args.subset:
+        sess = orm.init_orm(cfg)
         from texscythe import subset
-        subset.compute_subset(cfg)
+        subset.compute_subset(cfg, sess)
+        sess.close()
     elif args.initdb:
         from texscythe import tlpdbparser
-        tlpdbparser.initdb(cfg)
+        sess = orm.init_orm(cfg, force_create=True)
+        sess.close()
     elif args.version:
         print_version()
     else:

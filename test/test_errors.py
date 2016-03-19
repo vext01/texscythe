@@ -2,10 +2,10 @@ import pytest
 import os.path
 from helper import DIRPATH
 
-from texscythe import tlpdbparser, config
+from texscythe import config
 from texscythe.subset import TeXSubsetError
 from texscythe.tlpdbparser import TeXParseError
-from texscythe import subset
+from texscythe import subset, orm
 
 subset  # silence PEP8
 
@@ -20,7 +20,9 @@ class Test_Errors(object):
                 arch="amd64-linux",
                 dirs=False
                 )
-        self.sess = tlpdbparser.initdb(self.cfg, return_sess=True)
+        if os.path.exists(self.cfg.sqldb):
+            os.unlink(self.cfg.sqldb)
+        self.sess = orm.init_orm(self.cfg)
 
     def setup_method(self, method):
         self.cfg = None

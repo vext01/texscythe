@@ -13,7 +13,10 @@ class AbstractTest(object):
 
     def setup_method(self, method):
         import texscythe
-        self.sess = texscythe.tlpdbparser.initdb(self.cfg, return_sess=True)
+        # SQL db should NOT exist
+        if os.path.exists(self.cfg.sqldb):
+            os.unlink(self.cfg.sqldb)
+        self.sess = texscythe.orm.init_orm(self.cfg)
 
     def teardown_method(self, method):
         self.sess.close()

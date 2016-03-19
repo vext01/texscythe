@@ -1,6 +1,5 @@
 import sys
 import os
-import orm
 
 from orm import Package, Dependency, File
 from orm import DeclarativeBase
@@ -225,24 +224,25 @@ def print_db_summary(sess):
     print("Dependencies: %8d" % sess.query(Dependency).count())
 
 
-def initdb(cfg, return_sess=False):
+def initdb(cfg, sess, engine):
     # Since we will only ever use sqlite, we can do this
     if os.path.exists(cfg.sqldb):
         os.unlink(cfg.sqldb)
 
-    # Set up ORM
-    (sess, engine) = orm.init_orm(cfg.sqldb)
     DeclarativeBase.metadata.create_all(engine)
 
     # Populate db
     parse(sess, cfg)
     sess.commit()
 
+    # Set the mtime of the database to match the tlpdb. Used to detect if the
+    # database is out of date. The resolution set by os.utime seems to less
+    # than os.path.mtime. To make the times match we set the mtime of *both*
+    # the tlpdb *and* the sqldb.
+    tlpdb_time = os.path.getmtime(cfg.tlpdb)
+    os.utime(cfg.sqldb, (tlpdb_time, tlpdb_time))
+    os.utime(cfg.tlpdb, (tlpdb_time, tlpdb_time))
+
     # Done
     if not cfg.quiet:
         print_db_summary(sess)
-
-    if not return_sess:
-        sess.close()
-    else:
-        return sess
