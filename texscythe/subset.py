@@ -2,7 +2,7 @@ import sys
 import os.path
 import re
 
-from orm import Package, File, init_orm
+from orm import Package, File
 
 BLANK = 80 * " "
 
@@ -84,13 +84,10 @@ def dir_entries(path, exclude=[]):
     return dirs
 
 
-def compute_subset(cfg, sess=None):
+def compute_subset(cfg, sess):
     # parse the pkgspecs
     include_specs = [parse_subset_spec(s) for s in cfg.inc_pkgspecs]
     exclude_specs = [parse_subset_spec(s) for s in cfg.exc_pkgspecs]
-
-    if sess is None:
-        (sess, engine) = init_orm(cfg.sqldb)
 
     if not cfg.quiet:
         sys.stderr.write("Collecting include files:\n")
