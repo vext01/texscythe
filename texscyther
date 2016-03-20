@@ -7,21 +7,17 @@ from texscythe import config, VERSION, COPYRIGHT, orm
 EPILOG = """
 INCLUDE and EXCLUDE are package specs of the form:
 
-  pkgname | pkgname:filetype1, ..., filetype_n
+  pkgname | pkgname:filetype1,...,filetype_n
 
 The first variant includes all file types. Filetypes: run, src, doc, bin.
 
 Example usage:
 
-  Initialise the database:
-
-      $ texscyther --initdb
-
   Compute a subset with scheme-tetex excluding scheme-mininial's docfiles:
 
-      $ texscyther --subset -i scheme-tetex -x scheme-minimal:doc
+      $ texscyther -t texlive2015.tlpdb.gz --subset -i scheme-tetex -x scheme-minimal:doc
 
-  texscyther will accept gzipped tlpdb files.
+  texscyther will accept gzipped or normal tlpdb files.
 """
 
 
