@@ -187,40 +187,19 @@ def parse_binfiles_data(sess, cfg, data, state):
     state.filelevel = ParserState.BINFILES
 
 
-def parse_catalogue_data(sess, cfg, data, state):
+def empty_parse_handler(sess, cfg, data, state):
     pass
 
 
-def parse_catalogue_ctan_data(sess, cfg, data, state):
-    pass
-
-
-def parse_catalogue_date_data(sess, cfg, data, state):
-    pass
-
-
-def parse_catalogue_license_data(sess, cfg, data, state):
-    pass
-
-
-def parse_catalogue_version_data(sess, cfg, data, state):
-    pass
-
-
-def parse_execute_data(sess, cfg, data, state):
-    pass
-
-
-def parse_postaction_data(sess, cfg, data, state):
-    pass
-
-
-def parse_catalogue_topics_data(sess, cfg, data, state):
-    pass
-
-
-def parse_catalogue_also_data(sess, cfg, data, state):
-    pass
+parse_catalogue_data = empty_parse_handler
+parse_catalogue_ctan_data = empty_parse_handler
+parse_catalogue_date_data = empty_parse_handler
+parse_catalogue_license_data = empty_parse_handler
+parse_catalogue_version_data = empty_parse_handler
+parse_execute_data = empty_parse_handler
+parse_postaction_data = empty_parse_handler
+parse_catalogue_topics_data = empty_parse_handler
+parse_catalogue_also_data = empty_parse_handler
 
 
 def print_db_summary(sess):
