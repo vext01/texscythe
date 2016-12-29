@@ -32,3 +32,12 @@ class Test_TeXLive2015(BaseTestTexLive):
     def test_count0001(self):
         assert self.sess.query(Package).count() == 5995
         assert self.sess.query(File).count() == 147335
+
+
+class Test_TeXLive2016(BaseTestTexLive):
+    VERSION = 2016
+
+    @pytest.mark.slow
+    def test_count0001(self):
+        assert self.sess.query(Package).count() == 6091
+        assert self.sess.query(File).count() == 153745
