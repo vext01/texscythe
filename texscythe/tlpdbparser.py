@@ -215,6 +215,14 @@ def parse_postaction_data(sess, cfg, data, state):
     pass
 
 
+def parse_catalogue_topics_data(sess, cfg, data, state):
+    pass
+
+
+def parse_catalogue_also_data(sess, cfg, data, state):
+    pass
+
+
 def print_db_summary(sess):
     print(25 * "=")
     print("Database summary")
