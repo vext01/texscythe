@@ -36,7 +36,6 @@ setup(name='texscythe',
       author_email='edd@theunixzoo.co.uk',
       license='ISC',
       keywords='LaTeX texmf subset',
-      long_description='TeX Live texmf subsetter',
       url='https://github.com/vext01/texscythe',
       install_requires=['sqlalchemy>=0.7'],  # although i'm not sure
       packages=['texscythe'],
