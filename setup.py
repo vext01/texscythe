@@ -44,7 +44,7 @@ setup(name='texscythe',
       classifiers=[
           "Development Status :: 4 - Beta",
           "Environment :: Console",
-          "License :: OSI Approved :: ISC License (ISCL)",
+          "License :: OSI Approved",
           "Operating System :: OS Independent",
           "Programming Language :: Python :: 2.7",
           "Topic :: Text Processing :: Markup :: LaTeX"
