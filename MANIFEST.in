@@ -3,4 +3,4 @@ include test/*.py
 include *.tlpdb.gz
 include README.md
 include LICENSE
-include CHANGELOG
+include LICENSE.TL
