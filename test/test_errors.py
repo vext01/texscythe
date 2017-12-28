@@ -26,6 +26,7 @@ class Test_Errors(object):
 
     def setup_method(self, method):
         self.cfg = None
+        self.sess = None
 
     def teardown_method(self, method):
         if self.cfg is not None:
@@ -39,10 +40,8 @@ class Test_Errors(object):
             except OSError:
                 pass
 
-        try:
+        if self.sess is not None:
             self.sess.close()
-        except:
-            pass
 
     def test_weird_line_postfix(self):
         pytest.raises(TeXParseError,

@@ -3,6 +3,7 @@ import os.path
 import re
 
 from orm import Package, File
+from sqlalchemy.orm.exc import NoResultFound
 
 BLANK = 80 * " "
 
@@ -195,7 +196,7 @@ def build_file_list_pkg(cfg, sess, filespec, seen_packages):
     # look up package
     try:
         pkg = sess.query(Package).filter(Package.pkgname == pkgname).one()
-    except:
+    except NoResultFound:
         if archpkg and cfg.skip_missing_archpkgs:
             return set()
         else:
