@@ -16,15 +16,6 @@ class BaseTestTexLive(AbstractTest):
         super(BaseTestTexLive, self).setup_method(method)
 
 
-class Test_TeXLive2014(BaseTestTexLive):
-    VERSION = 2014
-
-    @pytest.mark.slow
-    def test_count0001(self):
-        assert self.sess.query(Package).count() == 5987
-        assert self.sess.query(File).count() == 139123
-
-
 class Test_TeXLive2015(BaseTestTexLive):
     VERSION = 2015
 
