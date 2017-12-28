@@ -33,7 +33,7 @@ class ParserState(object):
 def fieldname_and_data(s):
     try:
         space = s.index(" ")
-    except:
+    except ValueError:
         raise TeXParseError("Malformed line, no space: '%s'" % s)
     return (s[0:space], s[space + 1:])
 
